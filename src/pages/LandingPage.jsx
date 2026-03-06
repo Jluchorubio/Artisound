@@ -33,6 +33,7 @@ export default function LandingPage() {
   const [coursesError, setCoursesError] = useState('');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [cardsPerView, setCardsPerView] = useState(() => (typeof window === 'undefined' ? 1 : getCardsPerView(window.innerWidth)));
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     anime({
@@ -110,35 +111,64 @@ export default function LandingPage() {
 
   return (
     <div className="bg-[#0a0a0c] font-['Inter'] text-white">
-      <header className="fixed inset-x-0 top-0 z-50 bg-black/50 px-4 py-4 backdrop-blur-lg md:px-10 md:py-6">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between">
-          <a href="#inicio" className="cursor-pointer text-3xl font-black italic tracking-tighter">
-            AXM<span className="text-yellow-400">.</span>
-          </a>
+      <header className="fixed inset-x-0 top-0 z-50 bg-black/55 px-3 py-3 backdrop-blur-lg md:px-10 md:py-6">
+        <div className="mx-auto w-full max-w-7xl">
+          <div className="flex items-center justify-between">
+            <a href="#inicio" className="cursor-pointer text-2xl font-black italic tracking-tighter md:text-3xl">
+              AXM<span className="text-yellow-400">.</span>
+            </a>
 
-          <nav className="hidden gap-10 text-xs font-bold uppercase tracking-widest md:flex">
-            <a href="#inicio" className="transition hover:text-yellow-400">Explorar</a>
-            <a href="#programas" className="transition hover:text-yellow-400">Programas</a>
-            <a href="#footer" className="transition hover:text-yellow-400">Comunidad</a>
-          </nav>
+            <nav className="hidden gap-10 text-xs font-bold uppercase tracking-widest md:flex">
+              <a href="#inicio" className="transition hover:text-yellow-400">Explorar</a>
+              <a href="#programas" className="transition hover:text-yellow-400">Programas</a>
+              <a href="#footer" className="transition hover:text-yellow-400">Comunidad</a>
+            </nav>
 
-          <div className="flex items-center gap-3">
-            {!user ? (
-              <>
-                <Link to="/login" className="hidden text-xs font-bold uppercase sm:block">Login</Link>
-                <Link
-                  to="/register"
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-400 text-xl font-bold text-black transition-all duration-300 hover:scale-110"
-                >
-                  ?
+            <div className="hidden items-center gap-3 md:flex">
+              {!user ? (
+                <>
+                  <Link to="/login" className="text-xs font-bold uppercase">Login</Link>
+                  <Link
+                    to="/register"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-400 text-xl font-bold text-black transition-all duration-300 hover:scale-110"
+                  >
+                    ?
+                  </Link>
+                </>
+              ) : (
+                <Link to={dashboardTarget} className="rounded-full bg-yellow-400 px-4 py-2 text-xs font-black uppercase text-black transition-all duration-300 hover:scale-105">
+                  Mi panel
                 </Link>
-              </>
-            ) : (
-              <Link to={dashboardTarget} className="rounded-full bg-yellow-400 px-4 py-2 text-xs font-black uppercase text-black transition-all duration-300 hover:scale-105">
-                Mi panel
-              </Link>
-            )}
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className="flex h-10 w-10 items-center justify-center border border-white/20 text-white md:hidden"
+              aria-label={mobileMenuOpen ? 'Cerrar menu' : 'Abrir menu'}
+            >
+              <span className="text-lg">{mobileMenuOpen ? '✕' : '☰'}</span>
+            </button>
           </div>
+
+          {mobileMenuOpen && (
+            <div className="mt-3 space-y-2 border border-white/15 bg-black/80 p-3 md:hidden">
+              <a href="#inicio" onClick={() => setMobileMenuOpen(false)} className="block border border-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.14em]">Explorar</a>
+              <a href="#programas" onClick={() => setMobileMenuOpen(false)} className="block border border-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.14em]">Programas</a>
+              <a href="#footer" onClick={() => setMobileMenuOpen(false)} className="block border border-white/10 px-3 py-2 text-xs font-black uppercase tracking-[0.14em]">Comunidad</a>
+              {!user ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="border border-white/10 px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em]">Login</Link>
+                  <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="bg-yellow-400 px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] text-black">Registro</Link>
+                </div>
+              ) : (
+                <Link to={dashboardTarget} onClick={() => setMobileMenuOpen(false)} className="block bg-yellow-400 px-3 py-2 text-center text-xs font-black uppercase tracking-[0.14em] text-black">
+                  Mi panel
+                </Link>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -422,6 +452,7 @@ export default function LandingPage() {
           </div>
         </footer>
       </main>
+
     </div>
   );
 }

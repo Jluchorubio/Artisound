@@ -12,6 +12,7 @@ import ProfessorPage from './pages/ProfessorPage';
 import DrawingPage from './pages/DrawingPage';
 import LandingPage from './pages/LandingPage';
 import { getHomePathByRole } from './utils/authRedirect';
+import SpotifyFloatingWidget from './components/SpotifyFloatingWidget';
 
 function HomeRedirect() {
   const { user, loading } = useAuth();
@@ -103,6 +104,7 @@ export default function App() {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <SpotifyFloatingWidget />
       </div>
     </main>
   );
