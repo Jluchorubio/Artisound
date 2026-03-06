@@ -17,7 +17,7 @@ function HomeRedirect() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <p className="text-center text-slate-600">Cargando...</p>;
+    return <p className="py-10 text-center text-zinc-300">Cargando...</p>;
   }
 
   return <Navigate to={user ? getHomePathByRole(user.role) : '/login'} replace />;
@@ -26,10 +26,12 @@ function HomeRedirect() {
 export default function App() {
   const location = useLocation();
   const isLanding = location.pathname === '/';
+  const isAuth = location.pathname === '/login' || location.pathname === '/register';
+  const isSpecial = isLanding || isAuth;
 
   return (
-    <main className={isLanding ? 'min-h-screen' : 'min-h-screen bg-gradient-to-br from-slate-100 to-cyan-100 p-4 md:p-10'}>
-      <div className={isLanding ? '' : 'mx-auto max-w-6xl'}>
+    <main className={isSpecial ? 'min-h-screen' : 'min-h-screen bg-[#050505] text-white'}>
+      <div>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/redirect" element={<HomeRedirect />} />

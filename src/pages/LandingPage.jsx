@@ -189,11 +189,38 @@ export default function LandingPage() {
           </article>
         </section>
 
-        <section id="comparacion" className="relative min-h-[100vh] overflow-hidden bg-[#090b12] px-4 py-14 md:px-10 md:py-20">
+        <section className="relative overflow-hidden bg-black px-4 py-20 md:px-10 md:py-24">
+          <div className="mx-auto grid w-full max-w-7xl items-center gap-10 md:grid-cols-[1.05fr_0.95fr]">
+            <div className="relative h-[320px] md:h-[520px]">
+              <div className="absolute left-6 top-6 h-[88%] w-[88%] rotate-[-3deg] border-[10px] border-[#ffb000]" />
+              <div className="absolute left-0 top-0 h-[88%] w-[88%] rotate-[-3deg] border-[10px] border-[#2f3138]" />
+            </div>
+
+            <div className="relative">
+              <div className="absolute -right-8 top-2 h-40 w-40 rounded-full bg-blue-600/85 md:h-72 md:w-72" />
+              <div className="relative z-10 max-w-2xl rounded-[40%_60%_55%_45%_/_42%_38%_62%_58%] bg-[#e8e8e8] px-8 py-10 text-black shadow-2xl md:px-12 md:py-12">
+                <h2 className="text-4xl font-black uppercase italic leading-none md:text-6xl">Quienes<br />Somos?</h2>
+                <p className="mt-5 text-base leading-relaxed md:text-xl md:leading-[1.5]">
+                  Somos un colectivo de mentes inquietas, rebeldes y apasionadas que creen que la educacion no debe ser aburrida.
+                  Nuestra mision es fusionar la tecnica clasica con la rebeldia del arte callejero y la potencia de la musica moderna,
+                  para transformar el aprendizaje en una experiencia creativa, cercana y profesional.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3 text-xs font-black uppercase tracking-wider text-white md:text-sm">
+                  <span className="bg-black px-3 py-1">Creatividad</span>
+                  <span className="bg-black px-3 py-1">Revolucion</span>
+                  <span className="bg-black px-3 py-1">Talento</span>
+                </div>
+              </div>
+              <div className="absolute bottom-[-28px] right-[42px] h-16 w-16 rounded-full bg-[#e8e8e8] md:bottom-[-54px] md:h-24 md:w-24" />
+            </div>
+          </div>
+        </section>
+
+        <section id="comparacion" className="relative min-h-[120vh] overflow-hidden bg-[#090b12] px-4 py-14 md:px-10 md:py-20">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.2),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.18),transparent_35%)]" />
 
-          <div className="relative z-20 mx-auto flex min-h-[78vh] max-w-7xl flex-col gap-8 md:block">
-            <article className="rounded-2xl border border-white/10 bg-black/35 p-6 shadow-2xl md:absolute md:left-0 md:top-0 md:w-[46%]">
+          <div className="relative z-30 mx-auto flex min-h-[78vh] max-w-7xl flex-col gap-8 md:min-h-[920px] md:block">
+            <article className="rounded-2xl border border-white/10 bg-black/85 p-6 shadow-2xl md:absolute md:left-0 md:top-0 md:w-[46%]">
               <div
                 className="h-64 w-full rounded-xl border border-white/20 bg-cover bg-center"
                 style={{
@@ -210,7 +237,7 @@ export default function LandingPage() {
               </div>
             </article>
 
-            <article className="rounded-2xl border border-white/10 bg-black/35 p-6 shadow-2xl md:absolute md:bottom-0 md:right-0 md:w-[48%]">
+            <article className="rounded-2xl border border-white/10 bg-black/85 p-6 shadow-2xl md:absolute md:bottom-0 md:right-0 md:w-[48%]">
               <div
                 className="h-64 w-full rounded-xl border border-white/20 bg-cover bg-center"
                 style={{
@@ -228,7 +255,7 @@ export default function LandingPage() {
             </article>
           </div>
 
-          <div className="pointer-events-none absolute left-[-12%] top-1/2 z-30 flex h-24 w-[145%] -translate-y-1/2 -rotate-[13deg] items-center overflow-hidden border-y-4 border-black bg-[#ffd700] shadow-[0_0_60px_rgba(0,0,0,1)] md:h-28">
+          <div className="pointer-events-none absolute left-[-12%] top-1/2 z-10 flex h-20 w-[145%] -translate-y-1/2 -rotate-[13deg] items-center overflow-hidden border-y-4 border-black bg-[#ffd700] shadow-[0_0_60px_rgba(0,0,0,1)] md:h-28">
             <div ref={tapeRef} className="flex whitespace-nowrap">
               <span className="px-12 text-2xl font-black uppercase text-black md:text-4xl">Musica vs Arte // Musica vs Arte // Musica vs Arte //</span>
               <span className="px-12 text-2xl font-black uppercase text-black md:text-4xl">Musica vs Arte // Musica vs Arte // Musica vs Arte //</span>

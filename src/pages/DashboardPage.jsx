@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import RebelHeader from '../components/RebelHeader';
 import { apiRequest } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,7 +21,7 @@ export default function DashboardPage() {
       const response = await apiRequest('/auth/2fa/setup', { method: 'POST' });
       setQrCodeDataUrl(response.qrCodeDataUrl);
       setManualKey(response.manualKey);
-      setMessage('QR generado. Escanéalo y confirma con tu código.');
+      setMessage('QR generado. Escanealo y confirma con tu codigo.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -74,80 +74,73 @@ export default function DashboardPage() {
   };
 
   return (
-    <section className="rounded-2xl bg-white p-6 shadow-xl">
-      <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-      <p className="mt-2 text-slate-700">
-        Bienvenido, <strong>{user.name}</strong>
-      </p>
-      <p className="text-slate-700">
-        Rol actual: <strong>{user.role}</strong>
-      </p>
-      <p className="text-slate-700">
-        2FA: <strong>{user.twoFaEnabled ? 'Activo' : 'Inactivo'}</strong>
-      </p>
+    <>
+      <RebelHeader user={user} onLogout={logout} />
 
-      <div className="mt-4 flex flex-wrap gap-3">
-        {user.role === 'ADMIN' && (
-          <Link to="/admin/users" className="rounded-lg bg-slate-200 px-4 py-2 font-semibold text-slate-800">
-            Gestionar roles
-          </Link>
-        )}
-        <button
-          type="button"
-          onClick={logout}
-          className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-700"
-        >
-          Cerrar sesión
-        </button>
-      </div>
+      <section className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 md:px-6">
+        <section className="border border-white/10 bg-[#111] p-6 shadow-[14px_14px_0px_#facc15]">
+          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-zinc-500">Panel de seguridad</p>
+          <h1 className="mt-3 text-5xl font-black italic uppercase leading-none">
+            Control de
+            <br />
+            <span className="text-yellow-400">Acceso</span>
+          </h1>
+          <div className="mt-4 grid gap-2 text-sm text-zinc-300 md:grid-cols-3">
+            <p>Usuario: <strong>{user.name}</strong></p>
+            <p>Rol: <strong>{user.role}</strong></p>
+            <p>2FA: <strong>{user.twoFaEnabled ? 'Activo' : 'Inactivo'}</strong></p>
+          </div>
+        </section>
 
-      <div className="my-5 h-px w-full bg-slate-200" />
+        {message && <p className="border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{message}</p>}
+        {error && <p className="border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
 
-      <h2 className="text-lg font-semibold text-slate-900">Seguridad 2FA</h2>
-      {!user.twoFaEnabled && (
-        <button
-          type="button"
-          onClick={setupTwoFa}
-          disabled={loading}
-          className="mt-3 rounded-lg bg-cyan-700 px-4 py-2 font-semibold text-white hover:bg-cyan-800 disabled:opacity-60"
-        >
-          Generar QR para Google Authenticator
-        </button>
-      )}
+        <section className="border border-white/10 bg-[#121212] p-6">
+          <h2 className="text-3xl font-black uppercase italic">Verificacion 2FA</h2>
 
-      {qrCodeDataUrl && (
-        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <img src={qrCodeDataUrl} alt="QR 2FA" width="220" height="220" className="rounded-lg bg-white p-2" />
-          <p className="mt-2 text-sm text-slate-700">Clave manual: {manualKey}</p>
-        </div>
-      )}
+          {!user.twoFaEnabled && (
+            <button
+              type="button"
+              onClick={setupTwoFa}
+              disabled={loading}
+              className="mt-4 bg-white px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-black transition hover:-skew-x-6 hover:bg-yellow-300 disabled:opacity-60"
+            >
+              Generar QR para Google Authenticator
+            </button>
+          )}
 
-      {(qrCodeDataUrl || user.twoFaEnabled) && (
-        <form onSubmit={user.twoFaEnabled ? disableTwoFa : enableTwoFa} className="mt-4 space-y-3">
-          <label className="block text-sm font-medium text-slate-700">Código de 6 dígitos</label>
-          <input
-            value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            placeholder="000000"
-            required
-            className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2 outline-none ring-cyan-400 focus:ring"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-cyan-700 px-4 py-2 font-semibold text-white hover:bg-cyan-800 disabled:opacity-60"
-          >
-            {loading
-              ? 'Procesando...'
-              : user.twoFaEnabled
-                ? 'Desactivar 2FA'
-                : 'Confirmar activación 2FA'}
-          </button>
-        </form>
-      )}
+          {qrCodeDataUrl && (
+            <div className="mt-5 border border-white/10 bg-[#1a1a1a] p-4">
+              <img src={qrCodeDataUrl} alt="QR 2FA" width="220" height="220" className="bg-white p-2" />
+              <p className="mt-2 text-sm text-zinc-300">Clave manual: {manualKey}</p>
+            </div>
+          )}
 
-      {message && <p className="mt-3 text-sm text-emerald-700">{message}</p>}
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-    </section>
+          {(qrCodeDataUrl || user.twoFaEnabled) && (
+            <form onSubmit={user.twoFaEnabled ? disableTwoFa : enableTwoFa} className="mt-5 space-y-3">
+              <label className="block text-xs font-black uppercase tracking-[0.14em] text-zinc-400">Codigo de 6 digitos</label>
+              <input
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                required
+                className="w-full max-w-xs border border-white/20 bg-black/30 px-3 py-2 text-white outline-none focus:border-yellow-400"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-white px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-black transition hover:-skew-x-6 hover:bg-blue-400 hover:text-white disabled:opacity-60"
+              >
+                {loading
+                  ? 'Procesando...'
+                  : user.twoFaEnabled
+                    ? 'Desactivar 2FA'
+                    : 'Confirmar activacion 2FA'}
+              </button>
+            </form>
+          )}
+        </section>
+      </section>
+    </>
   );
 }

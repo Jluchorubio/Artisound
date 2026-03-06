@@ -5,7 +5,7 @@ export default function ProtectedRoute({ children, roles }) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <p className="text-center text-slate-600">Cargando...</p>;
+    return <p className="py-10 text-center text-zinc-300">Cargando...</p>;
   }
 
   if (!user) {

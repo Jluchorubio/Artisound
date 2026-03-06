@@ -1,6 +1,7 @@
-﻿import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import { apiRequest } from '../api/client';
+import RebelHeader from '../components/RebelHeader';
+import { useAuth } from '../context/AuthContext';
 
 const CANVAS_WIDTH = 1200;
 const CANVAS_HEIGHT = 700;
@@ -26,6 +27,7 @@ function hexToRgba(hex, alpha) {
 }
 
 export default function DrawingPage() {
+  const { user, logout } = useAuth();
   const canvasRef = useRef(null);
   const isDrawingRef = useRef(false);
   const undoStackRef = useRef([]);
@@ -269,154 +271,156 @@ export default function DrawingPage() {
   };
 
   return (
-    <section className="space-y-4">
-      <header className="rounded-2xl bg-white p-6 shadow-xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Demuestra tu talento</h1>
-            <p className="text-slate-600">Editor tipo Paint con capas de color, opacidad y control de historial</p>
-          </div>
-          <Link to="/inicio" className="rounded-lg bg-slate-200 px-3 py-2 text-sm font-semibold text-slate-800">
-            Volver al inicio
-          </Link>
-        </div>
-      </header>
+    <>
+      <RebelHeader user={user} onLogout={logout} />
 
-      {error && <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-      {message && <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p>}
+      <section className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 md:px-6">
+        <section className="border border-white/10 bg-[#111] p-6 shadow-[14px_14px_0px_#f59e0b]">
+          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-zinc-500">Laboratorio visual</p>
+          <h1 className="mt-3 text-5xl font-black italic uppercase leading-none">
+            Libertad
+            <br />
+            <span className="text-rose-500">Creativa</span>
+          </h1>
+          <p className="mt-4 text-zinc-300">Editor tipo Paint con historial, opacidad, color y portafolio personal.</p>
+        </section>
 
-      <section className="rounded-2xl bg-white p-6 shadow-xl">
-        <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
-          <aside className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Herramientas</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => setTool('brush')}
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold ${tool === 'brush' ? 'bg-cyan-700 text-white' : 'bg-white text-slate-700 border border-slate-300'}`}
-                >
-                  Pincel
-                </button>
-                <button
-                  onClick={() => setTool('eraser')}
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold ${tool === 'eraser' ? 'bg-cyan-700 text-white' : 'bg-white text-slate-700 border border-slate-300'}`}
-                >
-                  Borrador
-                </button>
-              </div>
-            </div>
+        {error && <p className="border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
+        {message && <p className="border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{message}</p>}
 
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Historial</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button onClick={undo} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
-                  Deshacer
-                </button>
-                <button onClick={redo} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
-                  Rehacer
-                </button>
-                <button onClick={clearCanvas} className="col-span-2 rounded-lg bg-slate-700 px-3 py-2 text-sm font-semibold text-white">
-                  Limpiar lienzo
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Color</p>
-              <div className="mb-3 grid grid-cols-5 gap-2">
-                {presetColors.map((preset) => (
+        <section className="border border-white/10 bg-[#121212] p-6">
+          <div className="grid gap-4 lg:grid-cols-[240px_1fr]">
+            <aside className="space-y-4 border border-white/10 bg-black/30 p-4">
+              <div>
+                <p className="mb-2 text-[10px] font-black uppercase tracking-[0.16em] text-zinc-400">Herramientas</p>
+                <div className="grid grid-cols-2 gap-2">
                   <button
-                    key={preset}
-                    type="button"
-                    onClick={() => setColor(preset)}
-                    className={`h-8 w-8 rounded border ${color === preset ? 'ring-2 ring-cyan-500' : 'border-slate-300'}`}
-                    style={{ backgroundColor: preset }}
-                    title={preset}
-                  />
-                ))}
+                    onClick={() => setTool('brush')}
+                    className={`px-3 py-2 text-xs font-black uppercase tracking-[0.12em] ${tool === 'brush' ? 'bg-yellow-400 text-black' : 'border border-white/20 text-zinc-100'}`}
+                  >
+                    Pincel
+                  </button>
+                  <button
+                    onClick={() => setTool('eraser')}
+                    className={`px-3 py-2 text-xs font-black uppercase tracking-[0.12em] ${tool === 'eraser' ? 'bg-yellow-400 text-black' : 'border border-white/20 text-zinc-100'}`}
+                  >
+                    Borrador
+                  </button>
+                </div>
               </div>
-              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-10 w-full rounded border border-slate-300" />
-            </div>
 
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Tamano y opacidad</p>
-              <label className="mb-2 block text-xs text-slate-600">Tamano: {lineWidth}px</label>
-              <input type="range" min={1} max={40} value={lineWidth} onChange={(e) => setLineWidth(Number(e.target.value))} className="w-full" />
-              <label className="mb-2 mt-3 block text-xs text-slate-600">Opacidad: {Math.round(opacity * 100)}%</label>
-              <input type="range" min={0.05} max={1} step={0.05} value={opacity} onChange={(e) => setOpacity(Number(e.target.value))} className="w-full" />
-            </div>
-          </aside>
+              <div>
+                <p className="mb-2 text-[10px] font-black uppercase tracking-[0.16em] text-zinc-400">Historial</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={undo} className="border border-white/20 px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-zinc-100">
+                    Deshacer
+                  </button>
+                  <button onClick={redo} className="border border-white/20 px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-zinc-100">
+                    Rehacer
+                  </button>
+                  <button onClick={clearCanvas} className="col-span-2 bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-black">
+                    Limpiar lienzo
+                  </button>
+                </div>
+              </div>
 
-          <div className="space-y-3">
-            <canvas
-              ref={canvasRef}
-              width={CANVAS_WIDTH}
-              height={CANVAS_HEIGHT}
-              onPointerDown={startDraw}
-              onPointerMove={draw}
-              onPointerUp={endDraw}
-              onPointerLeave={endDraw}
-              className="touch-none w-full rounded-xl border border-slate-300 bg-white shadow-inner"
-              style={{ aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}` }}
-            />
+              <div>
+                <p className="mb-2 text-[10px] font-black uppercase tracking-[0.16em] text-zinc-400">Color</p>
+                <div className="mb-3 grid grid-cols-5 gap-2">
+                  {presetColors.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setColor(preset)}
+                      className={`h-8 w-8 border ${color === preset ? 'border-yellow-300 ring-2 ring-yellow-400' : 'border-white/20'}`}
+                      style={{ backgroundColor: preset }}
+                      title={preset}
+                    />
+                  ))}
+                </div>
+                <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-10 w-full border border-white/20" />
+              </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
-              <input
-                placeholder="Titulo"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="rounded-lg border border-slate-300 px-3 py-2"
+              <div>
+                <p className="mb-2 text-[10px] font-black uppercase tracking-[0.16em] text-zinc-400">Tamano y opacidad</p>
+                <label className="mb-2 block text-xs text-zinc-300">Tamano: {lineWidth}px</label>
+                <input type="range" min={1} max={40} value={lineWidth} onChange={(e) => setLineWidth(Number(e.target.value))} className="w-full" />
+                <label className="mb-2 mt-3 block text-xs text-zinc-300">Opacidad: {Math.round(opacity * 100)}%</label>
+                <input type="range" min={0.05} max={1} step={0.05} value={opacity} onChange={(e) => setOpacity(Number(e.target.value))} className="w-full" />
+              </div>
+            </aside>
+
+            <div className="space-y-3">
+              <canvas
+                ref={canvasRef}
+                width={CANVAS_WIDTH}
+                height={CANVAS_HEIGHT}
+                onPointerDown={startDraw}
+                onPointerMove={draw}
+                onPointerUp={endDraw}
+                onPointerLeave={endDraw}
+                className="touch-none w-full border-[10px] border-[#1a1a1a] bg-white shadow-[12px_12px_0px_#f59e0b]"
+                style={{ aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}` }}
               />
-              <input
-                placeholder="Descripcion"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="rounded-lg border border-slate-300 px-3 py-2"
-              />
-              <button onClick={saveDrawing} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white md:col-span-2">
-                {editingDrawingId ? 'Actualizar dibujo' : 'Guardar dibujo'}
-              </button>
-              {editingDrawingId && (
-                <button
-                  onClick={cancelEditing}
-                  className="rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white md:col-span-2"
-                >
-                  Cancelar edicion
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <input
+                  placeholder="Titulo"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="border border-white/20 bg-black/30 px-3 py-2 text-white"
+                />
+                <input
+                  placeholder="Descripcion"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="border border-white/20 bg-black/30 px-3 py-2 text-white"
+                />
+                <button onClick={saveDrawing} className="bg-white px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-black transition hover:-skew-x-6 hover:bg-rose-400 hover:text-white md:col-span-2">
+                  {editingDrawingId ? 'Actualizar dibujo' : 'Guardar dibujo'}
                 </button>
-              )}
+                {editingDrawingId && (
+                  <button
+                    onClick={cancelEditing}
+                    className="border border-white/20 px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-zinc-100 md:col-span-2"
+                  >
+                    Cancelar edicion
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="rounded-2xl bg-white p-6 shadow-xl">
-        <h2 className="mb-3 text-xl font-bold text-slate-900">Mi portafolio</h2>
-        {drawings.length === 0 ? (
-          <p className="text-slate-600">Aun no tienes dibujos guardados.</p>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-3">
-            {drawings.map((item) => (
-              <article key={item.id} className="rounded-xl border border-slate-200 p-3">
-                <img src={item.image_base64} alt={item.title || 'Dibujo'} className="h-36 w-full rounded-lg object-cover" />
-                <p className="mt-2 font-semibold text-slate-900">{item.title || 'Sin titulo'}</p>
-                <p className="text-sm text-slate-600">{item.description || 'Sin descripcion'}</p>
-                <button
-                  onClick={() => editDrawing(item)}
-                  className="mt-2 mr-2 rounded-lg bg-cyan-700 px-3 py-2 text-xs font-semibold text-white"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => deleteDrawing(item.id)}
-                  className="mt-2 rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white"
-                >
-                  Eliminar
-                </button>
-              </article>
-            ))}
-          </div>
-        )}
+        <section className="border border-white/10 bg-[#121212] p-6">
+          <h2 className="mb-4 text-3xl font-black uppercase italic">Mi portafolio</h2>
+          {drawings.length === 0 ? (
+            <p className="text-zinc-300">Aun no tienes dibujos guardados.</p>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-3">
+              {drawings.map((item) => (
+                <article key={item.id} className="border border-white/10 bg-[#1a1a1a] p-3">
+                  <img src={item.image_base64} alt={item.title || 'Dibujo'} className="h-36 w-full border border-white/10 object-cover" />
+                  <p className="mt-2 font-bold uppercase text-white">{item.title || 'Sin titulo'}</p>
+                  <p className="text-sm text-zinc-300">{item.description || 'Sin descripcion'}</p>
+                  <button
+                    onClick={() => editDrawing(item)}
+                    className="mt-3 mr-2 border border-white/20 px-3 py-2 text-[11px] font-black uppercase tracking-[0.1em] text-white"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => deleteDrawing(item.id)}
+                    className="mt-3 bg-rose-600 px-3 py-2 text-[11px] font-black uppercase tracking-[0.1em] text-white"
+                  >
+                    Eliminar
+                  </button>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       </section>
-    </section>
+    </>
   );
 }

@@ -1,4 +1,4 @@
-﻿import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 function sanitizeCode(value) {
   return value.replace(/\D/g, '').slice(0, 6);
@@ -71,12 +71,16 @@ export default function EmailCodeModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4">
-      <div className="w-full max-w-md rounded-2xl border border-emerald-500/40 bg-zinc-950 p-6 text-zinc-100 shadow-2xl">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-800 text-2xl">@</div>
-        <h2 className="text-center text-3xl font-black tracking-tight">Verificacion por correo</h2>
-        <p className="mt-2 text-center text-sm text-zinc-400">Enviamos un codigo de 6 digitos a</p>
-        <p className="text-center text-sm font-semibold text-emerald-400">{maskedEmail}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4">
+      <div className="relative w-full max-w-md border border-white/10 bg-[#161616] p-6 text-zinc-100 shadow-[12px_12px_0px_#facc15]">
+        <span className="absolute -top-3 right-4 rotate-2 bg-blue-600 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em]">
+          Verificacion
+        </span>
+
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center bg-white text-2xl font-black text-black">@</div>
+        <h2 className="text-center text-3xl font-black italic uppercase leading-none">Codigo de acceso</h2>
+        <p className="mt-2 text-center text-xs uppercase tracking-[0.15em] text-zinc-400">Enviado a</p>
+        <p className="text-center text-sm font-semibold text-yellow-300">{maskedEmail}</p>
 
         <form onSubmit={submit} className="mt-5 space-y-4">
           <div className="flex items-center justify-center gap-2">
@@ -91,28 +95,28 @@ export default function EmailCodeModal({
                 value={digit}
                 onChange={(event) => setDigit(index, event.target.value)}
                 onKeyDown={(event) => handleKeyDown(index, event)}
-                className="h-14 w-12 rounded-xl border border-zinc-700 bg-zinc-900 text-center text-xl font-bold outline-none ring-emerald-400 focus:ring"
+                className="h-14 w-12 border border-white/20 bg-black/40 text-center text-xl font-bold outline-none transition focus:border-yellow-400"
               />
             ))}
           </div>
 
-          <div className="rounded-xl border border-emerald-900 bg-emerald-950/40 px-3 py-2 text-center text-sm text-zinc-300">
-            Codigo valido por <span className="font-bold text-emerald-400">{expiresInMinutes} minutos</span>
+          <div className="border border-white/10 bg-black/35 px-3 py-2 text-center text-sm text-zinc-300">
+            Codigo valido por <span className="font-bold text-yellow-300">{expiresInMinutes} minutos</span>
           </div>
 
           {warning && <p className="text-center text-xs text-amber-300">{warning}</p>}
           {debugCode && (
-            <p className="rounded-lg border border-amber-700 bg-amber-900/30 px-3 py-2 text-center text-sm text-amber-200">
+            <p className="border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-center text-sm text-amber-200">
               Codigo temporal (modo debug): <strong>{debugCode}</strong>
             </p>
           )}
 
-          {error && <p className="text-center text-sm text-red-400">{error}</p>}
+          {error && <p className="text-center text-sm text-rose-300">{error}</p>}
 
           <button
             type="submit"
             disabled={loading || code.length !== 6}
-            className="w-full rounded-xl bg-emerald-400 px-4 py-3 text-lg font-bold text-zinc-950 hover:bg-emerald-300 disabled:opacity-50"
+            className="w-full bg-white px-4 py-3 text-base font-black uppercase tracking-[0.14em] text-black transition hover:bg-yellow-300 disabled:opacity-50"
           >
             Verificar e ingresar
           </button>
@@ -121,7 +125,7 @@ export default function EmailCodeModal({
             type="button"
             onClick={onResend}
             disabled={loading}
-            className="w-full rounded-xl border border-zinc-700 px-4 py-3 text-sm font-semibold hover:bg-zinc-900 disabled:opacity-50"
+            className="w-full border border-white/20 px-4 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-zinc-100 transition hover:bg-white/10 disabled:opacity-50"
           >
             Reenviar codigo
           </button>
@@ -130,7 +134,7 @@ export default function EmailCodeModal({
             type="button"
             onClick={onBack}
             disabled={loading}
-            className="w-full rounded-xl border border-zinc-800 px-4 py-3 text-sm text-zinc-400 hover:bg-zinc-900 disabled:opacity-50"
+            className="w-full border border-white/10 px-4 py-3 text-sm uppercase tracking-[0.08em] text-zinc-400 transition hover:bg-white/5 disabled:opacity-50"
           >
             Volver
           </button>
