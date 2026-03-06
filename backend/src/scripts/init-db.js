@@ -9,6 +9,10 @@ dotenv.config();
 const databaseUrl = process.env.DATABASE_URL;
 const adminEmail = process.env.ADMIN_EMAIL;
 const adminPassword = process.env.ADMIN_PASSWORD;
+const professorEmail = process.env.PROFESSOR_EMAIL || 'profesor@artisound.com';
+const professorPassword = process.env.PROFESSOR_PASSWORD || 'Profe1234!';
+const studentEmail = process.env.STUDENT_EMAIL || 'joselu.rubio2008@gmail.com';
+const studentPassword = process.env.STUDENT_PASSWORD || '12345678';
 
 if (!databaseUrl) {
   throw new Error('DATABASE_URL es requerido');
@@ -31,6 +35,26 @@ const statements = sql
   .filter(Boolean);
 
 const connection = await mysql.createConnection({ uri: databaseUrl, multipleStatements: true });
+
+async function getRoleIdByName(roleName) {
+  const [rows] = await connection.execute('SELECT id FROM roles WHERE name = ? LIMIT 1', [roleName]);
+  return rows[0]?.id || null;
+}
+
+async function upsertUser({ name, email, plainPassword, roleId }) {
+  if (!email || !plainPassword || !roleId) return;
+  const passwordHash = await bcrypt.hash(plainPassword, 12);
+  await connection.execute(
+    `INSERT INTO users (name, email, password_hash, role_id)
+     VALUES (?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE
+       name = VALUES(name),
+       password_hash = VALUES(password_hash),
+       role_id = VALUES(role_id),
+       active = TRUE`,
+    [name, email, passwordHash, roleId],
+  );
+}
 
 try {
   for (const statement of statements) {
@@ -95,20 +119,30 @@ try {
     await connection.execute('INSERT IGNORE INTO roles (name) VALUES (?)', [role]);
   }
 
-  if (adminEmail && adminPassword) {
-    const [roleRows] = await connection.execute('SELECT id FROM roles WHERE name = ?', ['ADMIN']);
-    const adminRoleId = roleRows[0]?.id;
+  const adminRoleId = await getRoleIdByName('ADMIN');
+  const professorRoleId = await getRoleIdByName('PROFESOR');
+  const userRoleId = await getRoleIdByName('USUARIO');
 
-    if (adminRoleId) {
-      const passwordHash = await bcrypt.hash(adminPassword, 12);
-      await connection.execute(
-        `INSERT INTO users (name, email, password_hash, role_id)
-         VALUES (?, ?, ?, ?)
-         ON DUPLICATE KEY UPDATE role_id = VALUES(role_id), active = TRUE`,
-        ['Administrador', adminEmail, passwordHash, adminRoleId],
-      );
-    }
-  }
+  await upsertUser({
+    name: 'Administrador',
+    email: adminEmail,
+    plainPassword: adminPassword,
+    roleId: adminRoleId,
+  });
+
+  await upsertUser({
+    name: 'Profesor',
+    email: professorEmail,
+    plainPassword: professorPassword,
+    roleId: professorRoleId,
+  });
+
+  await upsertUser({
+    name: 'Usuario Demo',
+    email: studentEmail,
+    plainPassword: studentPassword,
+    roleId: userRoleId,
+  });
 
   console.log('Base de datos inicializada correctamente');
 } finally {

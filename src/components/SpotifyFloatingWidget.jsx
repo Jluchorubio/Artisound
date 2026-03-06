@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import anime from 'animejs/lib/anime.es.js';
 
 const spotifyOptions = [
   {
@@ -19,6 +20,7 @@ export default function SpotifyFloatingWidget() {
   const [spotifyOpen, setSpotifyOpen] = useState(false);
   const [spotifyStarted, setSpotifyStarted] = useState(false);
   const [spotifySrc, setSpotifySrc] = useState(spotifyOptions[0].src);
+  const notesRef = useRef([]);
 
   const toggleSpotify = () => {
     if (!spotifyStarted) {
@@ -28,6 +30,27 @@ export default function SpotifyFloatingWidget() {
     }
     setSpotifyOpen((prev) => !prev);
   };
+
+  useEffect(() => {
+    const notes = notesRef.current.filter(Boolean);
+    anime.remove(notes);
+
+    if (!spotifyStarted || notes.length === 0) return;
+
+    anime({
+      targets: notes,
+      translateY: [0, -34],
+      translateX: [0, () => anime.random(-8, 8)],
+      opacity: [0, 0.95, 0],
+      scale: [0.6, 1.05],
+      easing: 'easeOutSine',
+      duration: 1600,
+      delay: anime.stagger(260),
+      loop: true,
+    });
+
+    return () => anime.remove(notes);
+  }, [spotifyStarted]);
 
   return (
     <div className="fixed bottom-4 right-4 z-[70] flex flex-col items-end gap-2">
@@ -81,17 +104,42 @@ export default function SpotifyFloatingWidget() {
         </div>
       )}
 
+      <div className="relative">
+        {spotifyStarted && (
+          <div className="pointer-events-none absolute -inset-6">
+            <span
+              ref={(el) => { notesRef.current[0] = el; }}
+              className="absolute bottom-3 right-10 text-lg text-[#7cf6b4] opacity-0"
+            >
+              ♪
+            </span>
+            <span
+              ref={(el) => { notesRef.current[1] = el; }}
+              className="absolute bottom-1 right-5 text-base text-[#5de69f] opacity-0"
+            >
+              ♫
+            </span>
+            <span
+              ref={(el) => { notesRef.current[2] = el; }}
+              className="absolute bottom-4 right-0 text-sm text-[#8ef9bf] opacity-0"
+            >
+              ♪
+            </span>
+          </div>
+        )}
+
         <button
           type="button"
-        onClick={toggleSpotify}
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/90 text-[#1DB954] shadow-xl transition hover:scale-105"
+          onClick={toggleSpotify}
+          className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/90 text-[#1DB954] shadow-xl transition hover:scale-105"
           aria-label={spotifyOpen ? 'Cerrar Spotify' : 'Abrir Spotify'}
           title={spotifyOpen ? 'Cerrar Spotify' : 'Abrir Spotify'}
-      >
-        <svg viewBox="0 0 24 24" className="h-6 w-6 fill-current" aria-hidden="true">
-          <path d="M12 1.75a10.25 10.25 0 1 0 10.25 10.25A10.26 10.26 0 0 0 12 1.75Zm4.67 14.77a.64.64 0 0 1-.88.21 9.56 9.56 0 0 0-8.36-.86.64.64 0 0 1-.42-1.2 10.84 10.84 0 0 1 9.46.98.64.64 0 0 1 .2.87Zm1.26-2.1a.8.8 0 0 1-1.1.26 11.96 11.96 0 0 0-10.6-1.02.8.8 0 1 1-.55-1.5 13.56 13.56 0 0 1 11.96 1.14.8.8 0 0 1 .3 1.1Zm.13-2.27a14.44 14.44 0 0 0-12.39-1.1.96.96 0 0 1-.62-1.82 16.37 16.37 0 0 1 14.06 1.24.96.96 0 0 1-1.05 1.68Z" />
-        </svg>
-      </button>
+        >
+          <svg viewBox="0 0 24 24" className="h-6 w-6 fill-current" aria-hidden="true">
+            <path d="M12 1.75a10.25 10.25 0 1 0 10.25 10.25A10.26 10.26 0 0 0 12 1.75Zm4.67 14.77a.64.64 0 0 1-.88.21 9.56 9.56 0 0 0-8.36-.86.64.64 0 0 1-.42-1.2 10.84 10.84 0 0 1 9.46.98.64.64 0 0 1 .2.87Zm1.26-2.1a.8.8 0 0 1-1.1.26 11.96 11.96 0 0 0-10.6-1.02.8.8 0 1 1-.55-1.5 13.56 13.56 0 0 1 11.96 1.14.8.8 0 0 1 .3 1.1Zm.13-2.27a14.44 14.44 0 0 0-12.39-1.1.96.96 0 0 1-.62-1.82 16.37 16.37 0 0 1 14.06 1.24.96.96 0 0 1-1.05 1.68Z" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }

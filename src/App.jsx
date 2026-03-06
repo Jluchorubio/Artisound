@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import anime from 'animejs/lib/anime.es.js';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
@@ -29,6 +31,17 @@ export default function App() {
   const isLanding = location.pathname === '/';
   const isAuth = location.pathname === '/login' || location.pathname === '/register';
   const isSpecial = isLanding || isAuth;
+
+  useEffect(() => {
+    anime({
+      targets: '.axm-animate-in',
+      opacity: [0, 1],
+      translateY: [18, 0],
+      easing: 'easeOutQuad',
+      duration: 520,
+      delay: anime.stagger(70),
+    });
+  }, [location.pathname]);
 
   return (
     <main className={isSpecial ? 'min-h-screen' : 'min-h-screen bg-[#050505] text-white'}>

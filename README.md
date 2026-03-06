@@ -17,6 +17,10 @@ Crea `.env` desde `.env.example` y ajusta:
 - `JWT_2FA_SECRET`
 - `ADMIN_EMAIL`
 - `ADMIN_PASSWORD`
+- `PROFESSOR_EMAIL`
+- `PROFESSOR_PASSWORD`
+- `STUDENT_EMAIL`
+- `STUDENT_PASSWORD`
 
 Ejemplo `DATABASE_URL`:
 
@@ -36,7 +40,13 @@ npm install
 npm run db:init
 ```
 
-Este comando ejecuta el SQL de [`backend/database/schema.sql`](backend/database/schema.sql), crea roles base y asegura el admin inicial.
+Este comando ejecuta el SQL de [`backend/database/schema.sql`](backend/database/schema.sql), crea roles base y asegura usuarios iniciales.
+
+Credenciales demo por defecto:
+
+- Admin: `admin@artisound.com` / `Admin1234!`
+- Profesor: `profesor@artisound.com` / `Profe1234!`
+- Usuario: `joselu.rubio2008@gmail.com` / `12345678`
 
 ## 4) Ejecutar proyecto
 
