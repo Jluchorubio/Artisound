@@ -5,6 +5,18 @@ import { authorizeRoles } from '../middlewares/role.middleware.js';
 
 const router = Router();
 
+async function getCompletedClassIdsByCourse(userId, courseId) {
+  const rows = await query(
+    `SELECT p.class_id
+     FROM progress p
+     INNER JOIN classes cl ON cl.id = p.class_id
+     WHERE cl.course_id = ? AND p.student_id = ?`,
+    [courseId, userId],
+  );
+
+  return rows.map((row) => Number(row.class_id));
+}
+
 async function syncEnrollmentCompletion(userId, courseId) {
   const totalRows = await query('SELECT COUNT(*) AS total FROM classes WHERE course_id = ?', [courseId]);
   const totalClasses = totalRows[0]?.total || 0;
@@ -59,10 +71,12 @@ router.post('/classes/:classId/complete', authenticate, authorizeRoles('USUARIO'
     );
 
     const progressInfo = await syncEnrollmentCompletion(req.user.id, enrollment.course_id);
+    const completedClassIds = await getCompletedClassIdsByCourse(req.user.id, enrollment.course_id);
 
     return res.status(200).json({
       message: 'Clase marcada como completada',
       ...progressInfo,
+      completedClassIds,
     });
   } catch (error) {
     console.error(error);
@@ -108,6 +122,7 @@ router.get('/me/progress', authenticate, authorizeRoles('USUARIO'), async (req, 
     );
 
     const progressPercent = totalClasses > 0 ? Math.round((completedClasses / totalClasses) * 100) : 0;
+    const completedClassIds = await getCompletedClassIdsByCourse(req.user.id, courseId);
 
     return res.status(200).json({
       courseId,
@@ -115,6 +130,7 @@ router.get('/me/progress', authenticate, authorizeRoles('USUARIO'), async (req, 
       totalClasses,
       completedClasses,
       progressPercent,
+      completedClassIds,
       averageGrade: avgRows[0]?.average_grade || null,
     });
   } catch (error) {

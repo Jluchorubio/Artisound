@@ -19,6 +19,14 @@ export default function StudentPage() {
   const [loadingClassesCourseId, setLoadingClassesCourseId] = useState(null);
   const [completingClassId, setCompletingClassId] = useState(null);
 
+  const isClassCompleted = useCallback(
+    (courseId, classId) => {
+      const completedClassIds = progressMap[courseId]?.completedClassIds || [];
+      return completedClassIds.includes(classId);
+    },
+    [progressMap],
+  );
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -117,6 +125,10 @@ export default function StudentPage() {
   };
 
   const completeClass = async (courseId, classId) => {
+    if (isClassCompleted(courseId, classId)) {
+      return;
+    }
+
     setError('');
     setMessage('');
     setCompletingClassId(classId);
@@ -245,10 +257,18 @@ export default function StudentPage() {
                               <button
                                 type="button"
                                 onClick={() => completeClass(course.course_id, item.id)}
-                                disabled={completingClassId === item.id}
-                                className="mt-3 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-[0.12em] text-black transition hover:bg-yellow-300 disabled:opacity-60"
+                                disabled={completingClassId === item.id || isClassCompleted(course.course_id, item.id)}
+                                className={`mt-3 px-3 py-2 text-[11px] font-black uppercase tracking-[0.12em] transition disabled:opacity-80 ${
+                                  isClassCompleted(course.course_id, item.id)
+                                    ? 'cursor-not-allowed border border-emerald-400/40 bg-emerald-500/20 text-emerald-200'
+                                    : 'bg-white text-black hover:bg-yellow-300 disabled:opacity-60'
+                                }`}
                               >
-                                {completingClassId === item.id ? 'Guardando...' : 'Marcar completada'}
+                                {isClassCompleted(course.course_id, item.id)
+                                  ? 'Completada'
+                                  : completingClassId === item.id
+                                    ? 'Guardando...'
+                                    : 'Marcar completada'}
                               </button>
                             </article>
                           ))
