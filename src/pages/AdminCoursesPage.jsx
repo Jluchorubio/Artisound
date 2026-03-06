@@ -10,15 +10,32 @@ export default function AdminCoursesPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  const [form, setForm] = useState({ title: '', description: '', professorId: '', published: true });
+  const [form, setForm] = useState({
+    title: '',
+    description: '',
+    category: 'ARTE',
+    imageUrl: '',
+    professorId: '',
+    published: true,
+  });
 
   const loadData = async () => {
-    try {
-      const [usersRes, coursesRes] = await Promise.all([apiRequest('/users'), apiRequest('/courses')]);
-      setUsers(usersRes.users || []);
-      setCourses(coursesRes.courses || []);
-    } catch (err) {
-      setError(err.message);
+    setError('');
+
+    const [usersResult, coursesResult] = await Promise.allSettled([apiRequest('/users'), apiRequest('/courses')]);
+
+    if (usersResult.status === 'fulfilled') {
+      setUsers(usersResult.value.users || []);
+    } else {
+      setUsers([]);
+      setError((prev) => (prev ? `${prev} | No se pudo listar profesores` : 'No se pudo listar profesores'));
+    }
+
+    if (coursesResult.status === 'fulfilled') {
+      setCourses(coursesResult.value.courses || []);
+    } else {
+      setCourses([]);
+      setError((prev) => (prev ? `${prev} | No se pudo listar cursos` : 'No se pudo listar cursos'));
     }
   };
 
@@ -26,7 +43,7 @@ export default function AdminCoursesPage() {
     loadData();
   }, []);
 
-  const professorOptions = users.filter((item) => item.role === 'PROFESOR');
+  const professorOptions = users.filter((item) => item.role === 'PROFESOR' && item.active);
 
   const createCourse = async (event) => {
     event.preventDefault();
@@ -39,13 +56,15 @@ export default function AdminCoursesPage() {
         body: JSON.stringify({
           title: form.title,
           description: form.description,
+          category: form.category,
+          imageUrl: form.imageUrl || undefined,
           professorId: Number(form.professorId),
           published: Boolean(form.published),
         }),
       });
 
       setMessage('Curso creado');
-      setForm({ title: '', description: '', professorId: '', published: true });
+      setForm({ title: '', description: '', category: 'ARTE', imageUrl: '', professorId: '', published: true });
       await loadData();
     } catch (err) {
       setError(err.message);
@@ -119,6 +138,20 @@ export default function AdminCoursesPage() {
             className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white outline-none transition-all duration-300 focus:border-fuchsia-300 md:col-span-2"
           />
           <select
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white outline-none"
+          >
+            <option value="ARTE" className="text-slate-900">Arte</option>
+            <option value="MUSICA" className="text-slate-900">Musica</option>
+          </select>
+          <input
+            placeholder="Imagen URL"
+            value={form.imageUrl}
+            onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+            className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-white outline-none"
+          />
+          <select
             value={form.professorId}
             onChange={(e) => setForm({ ...form, professorId: e.target.value })}
             required
@@ -155,7 +188,7 @@ export default function AdminCoursesPage() {
               <article key={course.id} className="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/5 p-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-semibold text-white">{course.title}</p>
-                  <p className="text-xs text-zinc-300">Profesor: {course.professor_name}</p>
+                  <p className="text-xs text-zinc-300">Categoria: {course.category} · Profesor: {course.professor_name}</p>
                 </div>
                 <button
                   onClick={() => deleteCourse(course.id)}

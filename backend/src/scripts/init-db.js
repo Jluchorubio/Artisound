@@ -57,6 +57,39 @@ try {
     }
   }
 
+  const categoryColumnRows = await connection.query(
+    `SELECT COUNT(*) AS total
+     FROM information_schema.columns
+     WHERE table_schema = DATABASE() AND table_name = 'courses' AND column_name = 'category'`,
+  );
+  const hasCategoryColumn = categoryColumnRows[0][0].total > 0;
+  if (!hasCategoryColumn) {
+    await connection.query("ALTER TABLE courses ADD COLUMN category ENUM('ARTE','MUSICA') NOT NULL DEFAULT 'ARTE' AFTER description");
+  }
+
+  const imageUrlColumnRows = await connection.query(
+    `SELECT COUNT(*) AS total
+     FROM information_schema.columns
+     WHERE table_schema = DATABASE() AND table_name = 'courses' AND column_name = 'image_url'`,
+  );
+  const hasImageUrlColumn = imageUrlColumnRows[0][0].total > 0;
+  if (!hasImageUrlColumn) {
+    await connection.query('ALTER TABLE courses ADD COLUMN image_url VARCHAR(500) NULL AFTER category');
+  }
+
+  const statusColumnRows = await connection.query(
+    `SELECT COUNT(*) AS total
+     FROM information_schema.columns
+     WHERE table_schema = DATABASE() AND table_name = 'courses' AND column_name = 'status'`,
+  );
+  const hasStatusColumn = statusColumnRows[0][0].total > 0;
+  if (!hasStatusColumn) {
+    await connection.query("ALTER TABLE courses ADD COLUMN status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'INACTIVE' AFTER total_classes");
+  }
+
+  await connection.query("UPDATE courses SET status = IF(published = TRUE, 'ACTIVE', 'INACTIVE') WHERE status IS NULL OR status = ''");
+  await connection.query("UPDATE courses SET published = (status = 'ACTIVE')");
+
   const defaultRoles = ['ADMIN', 'PROFESOR', 'USUARIO'];
   for (const role of defaultRoles) {
     await connection.execute('INSERT IGNORE INTO roles (name) VALUES (?)', [role]);

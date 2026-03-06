@@ -20,14 +20,14 @@ router.post('/courses/:courseId/enroll', authenticate, authorizeRoles('USUARIO')
       return res.status(400).json({ message: 'ID de curso invalido' });
     }
 
-    const courseRows = await query('SELECT id, published FROM courses WHERE id = ? LIMIT 1', [courseId]);
+    const courseRows = await query('SELECT id, status FROM courses WHERE id = ? LIMIT 1', [courseId]);
     const course = courseRows[0];
 
     if (!course) {
       return res.status(404).json({ message: 'Curso no encontrado' });
     }
 
-    if (!course.published) {
+    if (course.status !== 'ACTIVE') {
       return res.status(403).json({ message: 'El curso no esta disponible para inscripcion' });
     }
 

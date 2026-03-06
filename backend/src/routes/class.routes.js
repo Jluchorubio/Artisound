@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { z } from 'zod';
 import { query } from '../config/db.js';
 import { authenticate } from '../middlewares/auth.middleware.js';
@@ -16,7 +16,7 @@ const classSchema = z.object({
 });
 
 async function getCourse(courseId) {
-  const rows = await query('SELECT id, professor_id FROM courses WHERE id = ? LIMIT 1', [courseId]);
+  const rows = await query('SELECT id, professor_id, status FROM courses WHERE id = ? LIMIT 1', [courseId]);
   return rows[0] || null;
 }
 
@@ -32,11 +32,42 @@ function canManageClass(user, course) {
   return false;
 }
 
+async function canStudentViewCourseClasses(userId, courseId) {
+  const rows = await query(
+    `SELECT e.id
+     FROM enrollments e
+     WHERE e.user_id = ? AND e.course_id = ? AND e.status IN ('ACTIVE','COMPLETED')
+     LIMIT 1`,
+    [userId, courseId],
+  );
+  return Boolean(rows[0]);
+}
+
 router.get('/courses/:courseId/classes', authenticate, async (req, res) => {
   try {
     const courseId = Number(req.params.courseId);
     if (Number.isNaN(courseId)) {
       return res.status(400).json({ message: 'ID de curso invalido' });
+    }
+
+    const course = await getCourse(courseId);
+    if (!course) {
+      return res.status(404).json({ message: 'Curso no encontrado' });
+    }
+
+    if (req.user.role === 'USUARIO') {
+      if (course.status !== 'ACTIVE') {
+        return res.status(403).json({ message: 'Curso inactivo' });
+      }
+
+      const enrolled = await canStudentViewCourseClasses(req.user.id, courseId);
+      if (!enrolled) {
+        return res.status(403).json({ message: 'Debes inscribirte al curso para ver sus clases' });
+      }
+    }
+
+    if (req.user.role === 'PROFESOR' && course.professor_id !== req.user.id) {
+      return res.status(403).json({ message: 'No tienes permisos para ver clases de este curso' });
     }
 
     const rows = await query(

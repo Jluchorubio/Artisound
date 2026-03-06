@@ -33,7 +33,6 @@ CREATE TABLE IF NOT EXISTS courses (
   title VARCHAR(180) NOT NULL,
   description TEXT NOT NULL,
   category ENUM('ARTE','MUSICA') NOT NULL DEFAULT 'ARTE',
-  image_url VARCHAR(500) NULL,
   professor_id BIGINT NOT NULL,
   total_classes INT NOT NULL DEFAULT 0,
   status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'INACTIVE',
@@ -41,6 +40,7 @@ CREATE TABLE IF NOT EXISTS courses (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_courses_professor_id (professor_id),
+  INDEX idx_courses_category_status (category, status),
   CONSTRAINT fk_courses_professor FOREIGN KEY (professor_id) REFERENCES users(id)
     ON UPDATE CASCADE
 );
@@ -110,33 +110,5 @@ CREATE TABLE IF NOT EXISTS progress (
   CONSTRAINT fk_progress_class FOREIGN KEY (class_id) REFERENCES classes(id)
     ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT fk_progress_student FOREIGN KEY (student_id) REFERENCES users(id)
-    ON DELETE CASCADE ON UPDATE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS drawings (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  user_id BIGINT NOT NULL,
-  title VARCHAR(150) NULL,
-  description VARCHAR(255) NULL,
-  format VARCHAR(20) NOT NULL DEFAULT 'image/png',
-  image_base64 LONGTEXT NULL,
-  image_url TEXT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_drawings_user_id (user_id),
-  CONSTRAINT fk_drawings_user FOREIGN KEY (user_id) REFERENCES users(id)
-    ON DELETE CASCADE ON UPDATE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS email_verification_codes (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
-  user_id BIGINT NOT NULL,
-  purpose ENUM('REGISTER','LOGIN') NOT NULL,
-  code_hash CHAR(64) NOT NULL,
-  expires_at DATETIME NOT NULL,
-  used_at DATETIME NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_email_codes_user (user_id),
-  INDEX idx_email_codes_expires (expires_at),
-  CONSTRAINT fk_email_codes_user FOREIGN KEY (user_id) REFERENCES users(id)
     ON DELETE CASCADE ON UPDATE CASCADE
 );
