@@ -1,4 +1,4 @@
-﻿import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
@@ -10,6 +10,7 @@ import IndexPage from './pages/IndexPage';
 import StudentPage from './pages/StudentPage';
 import ProfessorPage from './pages/ProfessorPage';
 import DrawingPage from './pages/DrawingPage';
+import LandingPage from './pages/LandingPage';
 import { getHomePathByRole } from './utils/authRedirect';
 
 function HomeRedirect() {
@@ -23,11 +24,15 @@ function HomeRedirect() {
 }
 
 export default function App() {
+  const location = useLocation();
+  const isLanding = location.pathname === '/';
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-100 to-cyan-100 p-4 md:p-10">
-      <div className="mx-auto max-w-6xl">
+    <main className={isLanding ? 'min-h-screen' : 'min-h-screen bg-gradient-to-br from-slate-100 to-cyan-100 p-4 md:p-10'}>
+      <div className={isLanding ? '' : 'mx-auto max-w-6xl'}>
         <Routes>
-          <Route path="/" element={<HomeRedirect />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/redirect" element={<HomeRedirect />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 

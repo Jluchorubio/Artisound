@@ -26,6 +26,8 @@ export const env = {
   jwtEmailChallengeSecret: process.env.JWT_EMAIL_CHALLENGE_SECRET || process.env.JWT_2FA_SECRET || process.env.JWT_ACCESS_SECRET,
   jwtEmailChallengeExpiresIn: process.env.JWT_EMAIL_CHALLENGE_EXPIRES_IN || '10m',
   emailCodeExpiresMinutes: Number(process.env.EMAIL_CODE_EXPIRES_MINUTES || 10),
+  emailCodeLogToTerminal:
+    String(process.env.EMAIL_CODE_LOG_TO_TERMINAL || (process.env.NODE_ENV !== 'production' ? 'true' : 'false')) === 'true',
   smtpHost: process.env.SMTP_HOST || 'smtp.gmail.com',
   smtpPort: Number(process.env.SMTP_PORT || 587),
   smtpSecure: String(process.env.SMTP_SECURE || 'false') === 'true',

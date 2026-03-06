@@ -60,6 +60,10 @@ export async function sendEmailCode({ to, name, code, minutes }) {
     </div>
   `;
 
+  if (env.emailCodeLogToTerminal) {
+    console.info(`[EMAIL CODE] to=${to} name="${name || 'usuario'}" code=${code} expiresIn=${minutes}m`);
+  }
+
   if (transporter) {
     try {
       await transporter.sendMail({
