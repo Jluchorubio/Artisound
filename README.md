@@ -61,7 +61,8 @@ npm run dev
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
-- `POST /api/auth/2fa/verify-login`
+- `POST /api/auth/email/verify`
+- `POST /api/auth/email/resend`
 - `GET /api/auth/me`
 - `POST /api/auth/2fa/setup`
 - `POST /api/auth/2fa/enable`
@@ -69,10 +70,48 @@ npm run dev
 - `GET /api/users` (ADMIN)
 - `PATCH /api/users/:id/role` (ADMIN)
 - `GET /api/roles` (ADMIN)
+- `GET /api/courses/public`
+- `GET /api/courses`
+- `GET /api/courses/mine` (PROFESOR)
+- `POST /api/courses` (ADMIN)
+- `PATCH /api/courses/:id` (ADMIN)
+- `DELETE /api/courses/:id` (ADMIN)
+- `GET /api/courses/:courseId/classes`
+- `POST /api/courses/:courseId/classes` (ADMIN, PROFESOR)
+- `PATCH /api/classes/:id` (ADMIN, PROFESOR)
+- `DELETE /api/classes/:id` (ADMIN, PROFESOR)
+- `POST /api/courses/:courseId/enroll` (USUARIO)
+- `DELETE /api/courses/:courseId/enroll` (USUARIO)
+- `GET /api/me/enrollments` (USUARIO)
+- `GET /api/courses/:courseId/students` (ADMIN, PROFESOR)
+- `POST /api/classes/:classId/grades` (ADMIN, PROFESOR)
+- `GET /api/me/grades` (USUARIO)
+- `POST /api/classes/:classId/complete` (USUARIO)
+- `GET /api/me/progress` (USUARIO)
+- `GET /api/me/overview` (USUARIO)
+- `POST /api/drawings` (autenticado)
+- `PUT /api/drawings/:id` (autenticado)
+- `GET /api/drawings/me` (autenticado)
+- `DELETE /api/drawings/:id` (autenticado)
+- `GET /api/health`
 
 ## 6) Frontend actual
 
+- `/` (landing)
 - `/login`
 - `/register`
+- `/redirect`
+- `/inicio`
+- `/estudiante` (USUARIO)
+- `/profesor` (PROFESOR)
+- `/dibujos`
 - `/dashboard`
 - `/admin/users` (solo ADMIN)
+- `/admin/cursos` (solo ADMIN)
+
+## 7) Flujo de inicio de sesion
+
+1. El usuario envía correo + contraseña a `POST /api/auth/login`.
+2. Si son válidos, el backend envía código por correo y responde `challengeToken`.
+3. El frontend valida ese código en `POST /api/auth/email/verify`.
+4. Solo después de verificar el código se entrega `accessToken` y se inicia sesión.

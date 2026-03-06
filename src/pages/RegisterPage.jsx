@@ -100,6 +100,12 @@ export default function RegisterPage() {
   return (
     <>
       <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#050505] px-4 py-8 text-white">
+        <Link
+          to="/"
+          className="absolute left-4 top-4 z-20 border border-white/20 bg-black/50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white transition hover:border-blue-400 hover:text-blue-300 md:left-6 md:top-6"
+        >
+          Volver al home
+        </Link>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(59,130,246,0.2),transparent_50%)]" />
         <div className="pointer-events-none absolute left-[-14%] top-1/2 h-16 w-[140%] -translate-y-1/2 rotate-[14deg] border-y-2 border-black bg-[#3b82f6] shadow-[0_0_40px_rgba(0,0,0,0.9)] md:h-20" />
 
