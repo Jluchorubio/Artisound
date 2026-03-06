@@ -37,6 +37,7 @@ export default function DrawingPage() {
   const [opacity, setOpacity] = useState(1);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [editingDrawingId, setEditingDrawingId] = useState(null);
   const [drawings, setDrawings] = useState([]);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -96,6 +97,25 @@ export default function DrawingPage() {
     };
 
     img.src = snapshot;
+  };
+
+  const loadImageOnCanvas = (imageDataUrl) => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      undoStackRef.current = [];
+      redoStackRef.current = [];
+      captureSnapshot();
+    };
+
+    img.src = imageDataUrl;
   };
 
   useEffect(() => {
@@ -188,18 +208,32 @@ export default function DrawingPage() {
 
     try {
       const imageBase64 = canvasRef.current.toDataURL('image/png');
-      await apiRequest('/drawings', {
-        method: 'POST',
-        body: JSON.stringify({
-          title,
-          description,
-          imageBase64,
-          format: 'image/png',
-        }),
-      });
-      setMessage('Dibujo guardado en tu portafolio');
+      if (editingDrawingId) {
+        await apiRequest(`/drawings/${editingDrawingId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            title,
+            description,
+            imageBase64,
+            format: 'image/png',
+          }),
+        });
+        setMessage('Dibujo actualizado en tu portafolio');
+      } else {
+        await apiRequest('/drawings', {
+          method: 'POST',
+          body: JSON.stringify({
+            title,
+            description,
+            imageBase64,
+            format: 'image/png',
+          }),
+        });
+        setMessage('Dibujo guardado en tu portafolio');
+      }
       setTitle('');
       setDescription('');
+      setEditingDrawingId(null);
       await loadPortfolio();
     } catch (err) {
       setError(err.message);
@@ -216,6 +250,22 @@ export default function DrawingPage() {
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const editDrawing = (drawing) => {
+    setError('');
+    setMessage('Editando dibujo seleccionado');
+    setEditingDrawingId(drawing.id);
+    setTitle(drawing.title || '');
+    setDescription(drawing.description || '');
+    loadImageOnCanvas(drawing.image_base64);
+  };
+
+  const cancelEditing = () => {
+    setEditingDrawingId(null);
+    setTitle('');
+    setDescription('');
+    clearCanvas();
   };
 
   return (
@@ -324,8 +374,16 @@ export default function DrawingPage() {
                 className="rounded-lg border border-slate-300 px-3 py-2"
               />
               <button onClick={saveDrawing} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white md:col-span-2">
-                Guardar dibujo
+                {editingDrawingId ? 'Actualizar dibujo' : 'Guardar dibujo'}
               </button>
+              {editingDrawingId && (
+                <button
+                  onClick={cancelEditing}
+                  className="rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white md:col-span-2"
+                >
+                  Cancelar edicion
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -342,6 +400,12 @@ export default function DrawingPage() {
                 <img src={item.image_base64} alt={item.title || 'Dibujo'} className="h-36 w-full rounded-lg object-cover" />
                 <p className="mt-2 font-semibold text-slate-900">{item.title || 'Sin titulo'}</p>
                 <p className="text-sm text-slate-600">{item.description || 'Sin descripcion'}</p>
+                <button
+                  onClick={() => editDrawing(item)}
+                  className="mt-2 mr-2 rounded-lg bg-cyan-700 px-3 py-2 text-xs font-semibold text-white"
+                >
+                  Editar
+                </button>
                 <button
                   onClick={() => deleteDrawing(item.id)}
                   className="mt-2 rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white"

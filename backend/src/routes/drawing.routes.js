@@ -38,6 +38,42 @@ router.post('/drawings', authenticate, async (req, res) => {
   }
 });
 
+router.put('/drawings/:id', authenticate, async (req, res) => {
+  try {
+    const drawingId = Number(req.params.id);
+    if (Number.isNaN(drawingId)) {
+      return res.status(400).json({ message: 'ID de dibujo invalido' });
+    }
+
+    const parsed = drawingSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: 'Datos invalidos', errors: parsed.error.issues });
+    }
+
+    const { title = null, description = null, imageBase64, format = 'image/png' } = parsed.data;
+
+    if (Buffer.byteLength(imageBase64, 'utf8') > 5 * 1024 * 1024) {
+      return res.status(400).json({ message: 'Imagen demasiado grande. Maximo 5MB en base64' });
+    }
+
+    const result = await query(
+      `UPDATE drawings
+       SET title = ?, description = ?, format = ?, image_base64 = ?
+       WHERE id = ? AND user_id = ?`,
+      [title, description, format, imageBase64, drawingId, req.user.id],
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Dibujo no encontrado' });
+    }
+
+    return res.status(200).json({ message: 'Dibujo actualizado' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'No se pudo actualizar el dibujo' });
+  }
+});
+
 router.get('/drawings/me', authenticate, async (req, res) => {
   try {
     const rows = await query(
