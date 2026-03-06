@@ -10,12 +10,15 @@ export default function StudentPage() {
   const [averageGrade, setAverageGrade] = useState(null);
   const [progressMap, setProgressMap] = useState({});
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [removingCourseId, setRemovingCourseId] = useState(null);
 
   useEffect(() => {
     async function loadData() {
       setLoading(true);
       setError('');
+      setMessage('');
 
       try {
         const [enrollRes, gradesRes] = await Promise.all([apiRequest('/me/enrollments'), apiRequest('/me/grades')]);
@@ -42,6 +45,27 @@ export default function StudentPage() {
     loadData();
   }, []);
 
+  const removeEnrollment = async (courseId) => {
+    setError('');
+    setMessage('');
+    setRemovingCourseId(courseId);
+
+    try {
+      const response = await apiRequest(`/courses/${courseId}/enroll`, { method: 'DELETE' });
+      setMessage(response.message || 'Inscripcion cancelada');
+      setEnrollments((prev) => prev.filter((item) => item.course_id !== courseId));
+      setProgressMap((prev) => {
+        const next = { ...prev };
+        delete next[courseId];
+        return next;
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setRemovingCourseId(null);
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -66,6 +90,7 @@ export default function StudentPage() {
           <p className="mt-4 text-zinc-300">Promedio general: {averageGrade ?? 'Sin calificaciones'}</p>
         </section>
 
+        {message && <p className="border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{message}</p>}
         {error && <p className="border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
 
         <section className="border border-white/10 bg-[#121212] p-6">
@@ -86,6 +111,14 @@ export default function StudentPage() {
                       Progreso: {progress ? `${progress.progressPercent}% (${progress.completedClasses}/${progress.totalClasses})` : '...'}
                     </p>
                     <p className="text-sm text-zinc-200">Promedio curso: {progress?.averageGrade ?? 'Sin notas'}</p>
+                    <button
+                      type="button"
+                      onClick={() => removeEnrollment(course.course_id)}
+                      disabled={removingCourseId === course.course_id}
+                      className="mt-4 bg-rose-600 px-3 py-2 text-[11px] font-black uppercase tracking-[0.12em] text-white transition hover:brightness-110 disabled:opacity-60"
+                    >
+                      {removingCourseId === course.course_id ? 'Quitando...' : 'Quitar inscripcion'}
+                    </button>
                   </article>
                 );
               })}

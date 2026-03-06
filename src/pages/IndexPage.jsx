@@ -3,7 +3,7 @@ import { apiRequest } from '../api/client';
 import RebelHeader from '../components/RebelHeader';
 import { useAuth } from '../context/AuthContext';
 
-function CourseCard({ course, canEnroll, onEnroll, enrollingId }) {
+function CourseCard({ course, canEnroll, onEnroll, enrollingId, isEnrolled }) {
   const accentClass = course.category === 'MUSICA' ? 'border-l-blue-500' : 'border-l-yellow-400';
 
   return (
@@ -20,10 +20,14 @@ function CourseCard({ course, canEnroll, onEnroll, enrollingId }) {
         <button
           type="button"
           onClick={() => onEnroll(course.id)}
-          disabled={enrollingId === course.id}
-          className="mt-5 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-black transition hover:-skew-x-6 hover:bg-yellow-300 disabled:opacity-60"
+          disabled={enrollingId === course.id || isEnrolled}
+          className={`mt-5 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] transition disabled:opacity-60 ${
+            isEnrolled
+              ? 'bg-emerald-500/25 text-emerald-200 border border-emerald-400/30'
+              : 'bg-white text-black hover:-skew-x-6 hover:bg-yellow-300'
+          }`}
         >
-          {enrollingId === course.id ? 'Inscribiendo...' : 'Inscribirme'}
+          {isEnrolled ? 'Inscrito' : enrollingId === course.id ? 'Inscribiendo...' : 'Inscribirme'}
         </button>
       )}
     </article>
@@ -37,15 +41,35 @@ export default function IndexPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [enrollingId, setEnrollingId] = useState(null);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState(new Set());
+
+  const isStudent = user.role === 'USUARIO';
 
   useEffect(() => {
-    apiRequest('/courses')
-      .then((res) => setCourses(res.courses || []))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+    async function loadData() {
+      setLoading(true);
+      setError('');
+      try {
+        const coursesRes = await apiRequest('/courses');
+        setCourses(coursesRes.courses || []);
+
+        if (isStudent) {
+          const enrollmentsRes = await apiRequest('/me/enrollments');
+          setEnrolledCourseIds(new Set((enrollmentsRes.enrollments || []).map((item) => item.course_id)));
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, [isStudent]);
 
   const onEnroll = async (courseId) => {
+    if (enrolledCourseIds.has(courseId)) return;
+
     setError('');
     setMessage('');
     setEnrollingId(courseId);
@@ -53,14 +77,17 @@ export default function IndexPage() {
     try {
       const response = await apiRequest(`/courses/${courseId}/enroll`, { method: 'POST' });
       setMessage(response.message || 'Inscripcion realizada');
+      setEnrolledCourseIds((prev) => {
+        const next = new Set(prev);
+        next.add(courseId);
+        return next;
+      });
     } catch (err) {
       setError(err.message);
     } finally {
       setEnrollingId(null);
     }
   };
-
-  const isStudent = user.role === 'USUARIO';
 
   return (
     <>
@@ -100,6 +127,7 @@ export default function IndexPage() {
                   canEnroll={isStudent}
                   onEnroll={onEnroll}
                   enrollingId={enrollingId}
+                  isEnrolled={enrolledCourseIds.has(course.id)}
                 />
               ))}
             </div>

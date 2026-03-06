@@ -45,6 +45,31 @@ router.post('/courses/:courseId/enroll', authenticate, authorizeRoles('USUARIO')
   }
 });
 
+router.delete('/courses/:courseId/enroll', authenticate, authorizeRoles('USUARIO'), async (req, res) => {
+  try {
+    const courseId = Number(req.params.courseId);
+    if (Number.isNaN(courseId)) {
+      return res.status(400).json({ message: 'ID de curso invalido' });
+    }
+
+    const result = await query(
+      `UPDATE enrollments
+       SET status = 'CANCELLED', updated_at = CURRENT_TIMESTAMP
+       WHERE user_id = ? AND course_id = ? AND status IN ('ACTIVE','PAUSED','COMPLETED')`,
+      [req.user.id, courseId],
+    );
+
+    if (!result.affectedRows) {
+      return res.status(404).json({ message: 'No tienes una inscripcion activa en este curso' });
+    }
+
+    return res.status(200).json({ message: 'Inscripcion cancelada correctamente' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'No se pudo cancelar la inscripcion' });
+  }
+});
+
 router.get('/me/enrollments', authenticate, authorizeRoles('USUARIO'), async (req, res) => {
   try {
     const rows = await query(
