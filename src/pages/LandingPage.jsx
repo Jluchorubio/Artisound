@@ -1,8 +1,15 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import anime from 'animejs/lib/anime.es.js';
+import { apiRequest } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { getHomePathByRole } from '../utils/authRedirect';
+
+function getFallbackImage(category) {
+  return category === 'MUSICA'
+    ? 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=1200'
+    : 'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&q=80&w=1200';
+}
 
 export default function LandingPage() {
   const { user } = useAuth();
@@ -12,6 +19,10 @@ export default function LandingPage() {
   const musicRef = useRef(null);
   const tapeRef = useRef(null);
   const currentYear = new Date().getFullYear();
+
+  const [courses, setCourses] = useState([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
+  const [coursesError, setCoursesError] = useState('');
 
   useEffect(() => {
     anime({
@@ -42,6 +53,33 @@ export default function LandingPage() {
       });
     }
   }, []);
+
+  useEffect(() => {
+    async function loadCourses() {
+      setCoursesLoading(true);
+      setCoursesError('');
+
+      try {
+        const response = await apiRequest('/courses');
+        setCourses(response.courses || []);
+      } catch (error) {
+        setCourses([]);
+        setCoursesError(error.message || 'No se pudieron cargar los cursos');
+      } finally {
+        setCoursesLoading(false);
+      }
+    }
+
+    loadCourses();
+  }, []);
+
+  const courseStats = useMemo(() => {
+    const artCount = courses.filter((course) => course.category === 'ARTE').length;
+    const musicCount = courses.filter((course) => course.category === 'MUSICA').length;
+    return { total: courses.length, artCount, musicCount };
+  }, [courses]);
+
+  const featuredCourses = courses.slice(0, 6);
 
   return (
     <div className="bg-[#0a0a0c] font-['Inter'] text-white">
@@ -124,165 +162,174 @@ export default function LandingPage() {
           </article>
         </section>
 
-        <section id="comparacion" className="relative flex h-[120vh] w-full flex-col overflow-hidden bg-[#111]">
-          <div
-            className="pointer-events-none absolute inset-0 opacity-15"
-            style={{
-              backgroundImage: "url('https://images.unsplash.com/photo-1533234407053-adb8220a45e4?q=80&w=1500')",
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          />
+        <section id="comparacion" className="relative overflow-hidden bg-[#090b12] px-4 py-20 md:px-10">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.2),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.18),transparent_35%)]" />
 
-          <div
-            className="absolute left-0 top-0 z-20 h-[70%] w-full px-6 py-16 md:px-16"
-            style={{
-              background: 'linear-gradient(135deg, #0a0a0c 40%, transparent)',
-              clipPath: 'polygon(0 0, 100% 0, 100% 30%, 0 80%)',
-            }}
-          >
-            <article className="flex max-w-2xl items-center gap-6">
+          <div className="relative z-20 mx-auto grid max-w-7xl gap-14 md:grid-cols-2">
+            <article className="rounded-2xl border border-white/10 bg-black/35 p-6 shadow-2xl">
               <div
-                className="h-40 w-40 shrink-0 rounded-full border-8 border-white bg-cover bg-center shadow-[0_0_30px_rgba(255,255,255,.1)] md:h-56 md:w-56"
+                className="h-64 w-full rounded-xl border border-white/20 bg-cover bg-center"
                 style={{
-                  backgroundImage: "url('https://images.unsplash.com/photo-1525201548112-c7b60203d7fe?q=80&w=800')",
+                  backgroundImage: "url('https://images.unsplash.com/photo-1525201548112-c7b60203d7fe?q=80&w=1200')",
                 }}
               />
-              <div>
-                <div className="-rotate-2 bg-white p-4 font-['Permanent_Marker'] text-xl font-black uppercase text-black shadow-[10px_10px_0px_#3b82f6] md:text-2xl">
-                  La musica es la pasion mas grande
-                </div>
-                <p className="mt-4 text-xs font-bold uppercase tracking-widest text-blue-400 md:text-sm">Guitar Master Class</p>
+              <div className="mt-5">
+                <p className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-blue-400">Guitar Master Class</p>
+                <h3 className="font-['Permanent_Marker'] text-3xl uppercase">La musica es la pasion mas grande</h3>
+                <p className="mt-3 text-zinc-300">
+                  Metodologia enfocada en tecnica, improvisacion y performance en vivo. Cada modulo combina practica guiada,
+                  retroalimentacion de profesores y retos semanales para acelerar tu progreso.
+                </p>
+              </div>
+            </article>
+
+            <article className="rounded-2xl border border-white/10 bg-black/35 p-6 shadow-2xl">
+              <div
+                className="h-64 w-full rounded-xl border border-white/20 bg-cover bg-center"
+                style={{
+                  backgroundImage: "url('https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=1200')",
+                }}
+              />
+              <div className="mt-5 text-right">
+                <p className="mb-2 text-xs font-black uppercase tracking-[0.2em] text-yellow-400">Contemporary Art Lab</p>
+                <h3 className="font-['Permanent_Marker'] text-3xl uppercase">El arte es la forma pura de la expresion humana</h3>
+                <p className="mt-3 text-zinc-300">
+                  Programa intensivo de composicion, color y narrativa visual. Desarrolla proyectos de portafolio con enfoque
+                  editorial y acompanamiento profesional desde boceto hasta entrega final.
+                </p>
               </div>
             </article>
           </div>
 
-          <div
-            className="absolute bottom-[20%] left-[-10%] z-30 flex h-[120px] w-[140%] origin-bottom-left -rotate-[15deg] items-center overflow-hidden border-y-[6px] border-black bg-[#ffd700] shadow-[0_0_60px_rgba(0,0,0,1)]"
-          >
+          <div className="pointer-events-none absolute left-[-12%] top-1/2 z-30 flex h-24 w-[145%] -translate-y-1/2 -rotate-[13deg] items-center overflow-hidden border-y-4 border-black bg-[#ffd700] shadow-[0_0_60px_rgba(0,0,0,1)] md:h-28">
             <div ref={tapeRef} className="flex whitespace-nowrap">
-              <span className="px-12 text-3xl font-black uppercase text-black md:text-4xl">Musica vs Arte // Musica vs Arte // Musica vs Arte //</span>
-              <span className="px-12 text-3xl font-black uppercase text-black md:text-4xl">Musica vs Arte // Musica vs Arte // Musica vs Arte //</span>
-              <span className="px-12 text-3xl font-black uppercase text-black md:text-4xl">Musica vs Arte // Musica vs Arte // Musica vs Arte //</span>
-            </div>
-          </div>
-
-          <div
-            className="absolute bottom-0 right-0 z-20 flex h-[70%] w-full items-end justify-end px-6 py-16 md:px-16"
-            style={{
-              background: 'linear-gradient(135deg, transparent, #0a0a0c 60%)',
-              clipPath: 'polygon(0 70%, 100% 20%, 100% 100%, 0 100%)',
-            }}
-          >
-            <article className="flex max-w-2xl items-center gap-6 md:flex-row-reverse">
-              <div
-                className="h-40 w-40 shrink-0 rounded-full border-8 border-white bg-cover bg-center shadow-[0_0_30px_rgba(255,255,255,.1)] md:h-56 md:w-56"
-                style={{
-                  backgroundImage: "url('https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=800')",
-                }}
-              />
-              <div className="text-right">
-                <div className="rotate-2 bg-white p-4 text-right font-['Permanent_Marker'] text-xl font-black uppercase text-black shadow-[10px_10px_0px_#f59e0b] md:text-2xl">
-                  El arte es la forma pura de la expresion humana
-                </div>
-                <p className="mt-4 text-xs font-bold uppercase tracking-widest text-yellow-400 md:text-sm">Contemporary Art Lab</p>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <section className="relative grid items-center gap-10 overflow-hidden bg-black px-6 py-20 md:grid-cols-2 md:px-14">
-          <div>
-            <div
-              className="h-[360px] w-full rotate-[-3deg] border-[12px] border-[#222] bg-cover bg-center shadow-[20px_20px_0px_#f59e0b] md:h-[500px]"
-              style={{
-                backgroundImage: "url('https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?q=80&w=1200')",
-              }}
-            />
-          </div>
-
-          <div className="relative">
-            <div className="absolute -right-8 -top-8 z-0 h-[260px] w-[260px] rounded-[60%_40%_30%_70%_/_60%_30%_70%_40%] bg-blue-500/80 blur-[5px] md:h-[350px] md:w-[350px]" />
-            <div className="relative z-10 max-w-xl rounded-[30%_70%_70%_30%_/_30%_30%_70%_70%] border-b-[20px] border-transparent bg-white p-8 text-black shadow-[0_20px_50px_rgba(0,0,0,.5)] md:p-12">
-              <h2 className="mb-6 text-5xl font-black uppercase italic">Quienes<br />Somos?</h2>
-              <p className="mb-6 text-lg font-medium leading-relaxed">
-                Somos un colectivo de mentes inquietas que creen que la educacion debe ser una revolucion. Fusionamos la tecnica con la rebeldia callejera.
-              </p>
-              <div className="flex gap-3">
-                <span className="bg-black px-3 py-1 text-xs font-black uppercase text-white">Creatividad</span>
-                <span className="bg-black px-3 py-1 text-xs font-black uppercase text-white">Revolucion</span>
-              </div>
+              <span className="px-12 text-2xl font-black uppercase text-black md:text-4xl">Musica vs Arte // Musica vs Arte // Musica vs Arte //</span>
+              <span className="px-12 text-2xl font-black uppercase text-black md:text-4xl">Musica vs Arte // Musica vs Arte // Musica vs Arte //</span>
+              <span className="px-12 text-2xl font-black uppercase text-black md:text-4xl">Musica vs Arte // Musica vs Arte // Musica vs Arte //</span>
             </div>
           </div>
         </section>
 
         <section
           id="programas"
-          className="relative bg-cover bg-center bg-fixed px-6 py-24 md:px-14"
+          className="relative bg-cover bg-center bg-fixed px-4 py-24 md:px-10"
           style={{
             backgroundImage: "url('https://images.unsplash.com/photo-1541944743827-e04bb645f946?q=80&w=1500')",
           }}
         >
-          <div className="absolute inset-0 bg-black/70 backdrop-grayscale-[0.5]" />
+          <div className="absolute inset-0 bg-black/75" />
           <div className="relative z-10 mx-auto max-w-7xl">
-            <div className="mb-16">
-              <h2 className="text-5xl font-black italic uppercase tracking-tighter md:text-6xl">Nuestros <span className="text-yellow-400">Programas</span></h2>
-              <div className="mt-4 h-2 w-32 bg-blue-500" />
+            <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <h2 className="text-5xl font-black italic uppercase tracking-tighter md:text-6xl">Nuestros <span className="text-yellow-400">Programas</span></h2>
+                <p className="mt-4 max-w-3xl text-zinc-300">
+                  Catalogo dinamico conectado con la base de datos. Aqui se reflejan en tiempo real los cursos activos de arte y musica,
+                  con su profesor asignado y descripcion para orientar mejor la decision del estudiante.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3 text-xs font-bold uppercase tracking-widest">
+                  <span className="rounded-full border border-yellow-400/50 bg-yellow-400/10 px-3 py-1 text-yellow-300">Arte: {courseStats.artCount}</span>
+                  <span className="rounded-full border border-blue-400/50 bg-blue-400/10 px-3 py-1 text-blue-300">Musica: {courseStats.musicCount}</span>
+                  <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-zinc-200">Total: {courseStats.total}</span>
+                </div>
+              </div>
+
+              <Link
+                to={dashboardTarget}
+                className="w-fit border-[3px] border-white px-8 py-3 text-sm font-black uppercase tracking-wider transition-all duration-300 hover:bg-white hover:text-black"
+              >
+                Ver catalogo completo
+              </Link>
             </div>
 
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-              {[
-                {
-                  tag: 'Visual Art',
-                  tagColor: 'text-yellow-400',
-                  title: 'Grafiti & Muralismo',
-                  desc: 'Desde el boceto en papel hasta el control de la boquilla en muros a gran escala.',
-                  weeks: '8 Semanas',
-                  border: '',
-                },
-                {
-                  tag: 'Audio Lab',
-                  tagColor: 'text-blue-400',
-                  title: 'Beatmaking 101',
-                  desc: 'Produccion de ritmos urbanos, mezcla y teoria musical aplicada al DAW.',
-                  weeks: '12 Semanas',
-                  border: 'border-t-4 border-blue-500',
-                },
-                {
-                  tag: 'Mixed Media',
-                  tagColor: 'text-purple-400',
-                  title: 'Diseno Rebelde',
-                  desc: 'Creacion de marcas con estetica punk y tipografia experimental.',
-                  weeks: '6 Semanas',
-                  border: '',
-                },
-              ].map((card) => (
-                <article
-                  key={card.title}
-                  className={`cursor-pointer border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition-all duration-300 hover:-translate-y-2 hover:border-yellow-500 hover:bg-white/10 ${card.border}`}
-                >
-                  <p className={`mb-4 text-xs font-black uppercase tracking-widest ${card.tagColor}`}>{card.tag}</p>
-                  <h3 className="mb-4 text-3xl font-black italic uppercase">{card.title}</h3>
-                  <p className="mb-6 font-medium text-zinc-400">{card.desc}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xl font-black">{card.weeks}</span>
-                    <span className="flex h-10 w-10 items-center justify-center border border-white/20">?</span>
-                  </div>
-                </article>
-              ))}
-            </div>
+            {coursesLoading ? (
+              <p className="rounded-xl border border-white/15 bg-black/30 p-4 text-zinc-200">Cargando cursos...</p>
+            ) : coursesError ? (
+              <p className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
+                {coursesError}. {user ? 'Recarga la pagina para reintentar.' : 'Inicia sesion para cargar el catalogo dinamico.'}
+              </p>
+            ) : featuredCourses.length === 0 ? (
+              <p className="rounded-xl border border-white/15 bg-black/30 p-4 text-zinc-200">No hay cursos disponibles por ahora.</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {featuredCourses.map((course) => (
+                  <article
+                    key={course.id}
+                    className="overflow-hidden rounded-2xl border border-white/15 bg-black/45 shadow-xl backdrop-blur transition-all duration-300 hover:-translate-y-2 hover:border-yellow-400/60"
+                  >
+                    <div
+                      className="h-44 w-full bg-cover bg-center"
+                      style={{
+                        backgroundImage: `linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,.1)), url('${course.image_url || getFallbackImage(course.category)}')`,
+                      }}
+                    />
+                    <div className="p-5">
+                      <div className="mb-3 flex items-center justify-between gap-2">
+                        <span className={`text-xs font-black uppercase tracking-widest ${course.category === 'MUSICA' ? 'text-blue-400' : 'text-yellow-400'}`}>
+                          {course.category === 'MUSICA' ? 'Audio Lab' : 'Visual Art'}
+                        </span>
+                        <span className="rounded-full border border-white/20 px-2 py-0.5 text-[10px] font-bold uppercase text-zinc-300">
+                          {course.total_classes > 0 ? `${course.total_classes} clases` : 'Plan inicial'}
+                        </span>
+                      </div>
 
-            <div className="mt-16 text-center">
-              <button className="border-[3px] border-white px-8 py-3 font-black uppercase tracking-wider transition-all duration-300 hover:bg-white hover:text-black">
-                Ver Catalogo Completo
-              </button>
-            </div>
+                      <h3 className="text-2xl font-black italic uppercase leading-tight">{course.title}</h3>
+                      <p className="mt-3 text-sm text-zinc-300">{course.description}</p>
+
+                      <div className="mt-5 flex items-center justify-between">
+                        <p className="text-xs uppercase tracking-wider text-zinc-400">Docente: {course.professor_name || 'Asignado'}</p>
+                        <span className="flex h-9 w-9 items-center justify-center border border-white/20 text-lg">?</span>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
-        <footer id="footer" className="border-t border-white/10 bg-black py-10 text-center">
-          <div className="mb-2 text-2xl font-black italic">AXM<span className="text-yellow-400">.</span></div>
-          <p className="text-xs font-bold uppercase tracking-widest text-zinc-600">Creative Rebel Academy &copy; {currentYear}</p>
+        <footer id="footer" className="border-t border-white/10 bg-[#050507] px-4 py-14 md:px-10">
+          <div className="mx-auto grid w-full max-w-7xl gap-10 md:grid-cols-4">
+            <div>
+              <p className="text-3xl font-black italic">AXM<span className="text-yellow-400">.</span></p>
+              <p className="mt-4 text-sm text-zinc-400">
+                Plataforma educativa creativa enfocada en arte y musica. Formacion practica para estudiantes, profesores y creadores.
+              </p>
+            </div>
+
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-200">Navegacion</p>
+              <div className="mt-4 space-y-2 text-sm text-zinc-400">
+                <a href="#inicio" className="block hover:text-white">Inicio</a>
+                <a href="#comparacion" className="block hover:text-white">Comparacion</a>
+                <a href="#programas" className="block hover:text-white">Programas</a>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-200">Categorias</p>
+              <div className="mt-4 space-y-2 text-sm text-zinc-400">
+                <p>Arte ({courseStats.artCount})</p>
+                <p>Musica ({courseStats.musicCount})</p>
+                <p>Cursos activos ({courseStats.total})</p>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-zinc-200">Empieza Hoy</p>
+              <p className="mt-4 text-sm text-zinc-400">Accede al campus, explora rutas de aprendizaje y construye tu portafolio creativo.</p>
+              <Link
+                to={dashboardTarget}
+                className="mt-5 inline-block rounded-full bg-yellow-400 px-5 py-2 text-xs font-black uppercase tracking-wider text-black transition-all duration-300 hover:scale-105"
+              >
+                Ir al campus
+              </Link>
+            </div>
+          </div>
+
+          <div className="mx-auto mt-10 flex w-full max-w-7xl flex-col gap-2 border-t border-white/10 pt-6 text-xs uppercase tracking-widest text-zinc-500 md:flex-row md:items-center md:justify-between">
+            <p>Creative Rebel Academy</p>
+            <p>&copy; {currentYear} Todos los derechos reservados</p>
+          </div>
         </footer>
       </main>
     </div>
