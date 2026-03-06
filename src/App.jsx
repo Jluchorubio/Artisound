@@ -5,7 +5,11 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminUsersPage from './pages/AdminUsersPage';
+import AdminCoursesPage from './pages/AdminCoursesPage';
 import IndexPage from './pages/IndexPage';
+import StudentPage from './pages/StudentPage';
+import ProfessorPage from './pages/ProfessorPage';
+import DrawingPage from './pages/DrawingPage';
 import { getHomePathByRole } from './utils/authRedirect';
 
 function HomeRedirect() {
@@ -26,6 +30,7 @@ export default function App() {
           <Route path="/" element={<HomeRedirect />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+
           <Route
             path="/inicio"
             element={
@@ -34,6 +39,34 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/estudiante"
+            element={
+              <ProtectedRoute roles={['USUARIO']}>
+                <StudentPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profesor"
+            element={
+              <ProtectedRoute roles={['PROFESOR']}>
+                <ProfessorPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/dibujos"
+            element={
+              <ProtectedRoute>
+                <DrawingPage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/dashboard"
             element={
@@ -42,6 +75,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admin/users"
             element={
@@ -50,6 +84,16 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/admin/cursos"
+            element={
+              <ProtectedRoute roles={['ADMIN']}>
+                <AdminCoursesPage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
