@@ -24,6 +24,29 @@ function mapStatusFromPayload(payload) {
   return undefined;
 }
 
+router.get('/public', async (req, res) => {
+  try {
+    const parsedLimit = Number(req.query.limit);
+    const limit = Number.isNaN(parsedLimit) ? 3 : Math.min(Math.max(parsedLimit, 1), 12);
+
+    const rows = await query(
+      `SELECT c.id, c.title, c.description, c.category, c.image_url, c.total_classes, c.status, c.created_at,
+              u.name AS professor_name
+       FROM courses c
+       INNER JOIN users u ON u.id = c.professor_id
+       WHERE c.status = 'ACTIVE'
+       ORDER BY c.created_at DESC
+       LIMIT ?`,
+      [limit],
+    );
+
+    return res.status(200).json({ courses: rows });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'No se pudieron obtener los cursos publicos' });
+  }
+});
+
 router.get('/', authenticate, async (req, res) => {
   try {
     const onlyActive = req.user.role === 'USUARIO';

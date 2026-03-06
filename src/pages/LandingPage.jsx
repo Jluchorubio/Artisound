@@ -11,9 +11,17 @@ function getFallbackImage(category) {
     : 'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&q=80&w=1200';
 }
 
+function getCardsPerView(width) {
+  if (width >= 1280) return 3;
+  if (width >= 768) return 2;
+  return 1;
+}
+
 export default function LandingPage() {
   const { user } = useAuth();
   const dashboardTarget = user ? getHomePathByRole(user.role) : '/login';
+  const isAuthenticated = Boolean(user);
+
   const heroRef = useRef(null);
   const artRef = useRef(null);
   const musicRef = useRef(null);
@@ -23,6 +31,8 @@ export default function LandingPage() {
   const [courses, setCourses] = useState([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
   const [coursesError, setCoursesError] = useState('');
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [cardsPerView, setCardsPerView] = useState(() => (typeof window === 'undefined' ? 1 : getCardsPerView(window.innerWidth)));
 
   useEffect(() => {
     anime({
@@ -60,7 +70,7 @@ export default function LandingPage() {
       setCoursesError('');
 
       try {
-        const response = await apiRequest('/courses');
+        const response = await apiRequest(isAuthenticated ? '/courses' : '/courses/public?limit=3');
         setCourses(response.courses || []);
       } catch (error) {
         setCourses([]);
@@ -71,7 +81,17 @@ export default function LandingPage() {
     }
 
     loadCourses();
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const onResize = () => setCardsPerView(getCardsPerView(window.innerWidth));
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
+
+  useEffect(() => {
+    setCarouselIndex(0);
+  }, [isAuthenticated, cardsPerView, courses.length]);
 
   const courseStats = useMemo(() => {
     const artCount = courses.filter((course) => course.category === 'ARTE').length;
@@ -79,7 +99,14 @@ export default function LandingPage() {
     return { total: courses.length, artCount, musicCount };
   }, [courses]);
 
-  const featuredCourses = courses.slice(0, 6);
+  const maxCarouselIndex = Math.max(0, courses.length - cardsPerView);
+
+  const moveCarousel = (direction) => {
+    setCarouselIndex((prev) => {
+      if (direction === 'next') return prev >= maxCarouselIndex ? 0 : prev + 1;
+      return prev <= 0 ? maxCarouselIndex : prev - 1;
+    });
+  };
 
   return (
     <div className="bg-[#0a0a0c] font-['Inter'] text-white">
@@ -162,11 +189,11 @@ export default function LandingPage() {
           </article>
         </section>
 
-        <section id="comparacion" className="relative overflow-hidden bg-[#090b12] px-4 py-20 md:px-10">
+        <section id="comparacion" className="relative min-h-[100vh] overflow-hidden bg-[#090b12] px-4 py-14 md:px-10 md:py-20">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.2),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.18),transparent_35%)]" />
 
-          <div className="relative z-20 mx-auto grid max-w-7xl gap-14 md:grid-cols-2">
-            <article className="rounded-2xl border border-white/10 bg-black/35 p-6 shadow-2xl">
+          <div className="relative z-20 mx-auto flex min-h-[78vh] max-w-7xl flex-col gap-8 md:block">
+            <article className="rounded-2xl border border-white/10 bg-black/35 p-6 shadow-2xl md:absolute md:left-0 md:top-0 md:w-[46%]">
               <div
                 className="h-64 w-full rounded-xl border border-white/20 bg-cover bg-center"
                 style={{
@@ -183,7 +210,7 @@ export default function LandingPage() {
               </div>
             </article>
 
-            <article className="rounded-2xl border border-white/10 bg-black/35 p-6 shadow-2xl">
+            <article className="rounded-2xl border border-white/10 bg-black/35 p-6 shadow-2xl md:absolute md:bottom-0 md:right-0 md:w-[48%]">
               <div
                 className="h-64 w-full rounded-xl border border-white/20 bg-cover bg-center"
                 style={{
@@ -223,8 +250,9 @@ export default function LandingPage() {
               <div>
                 <h2 className="text-5xl font-black italic uppercase tracking-tighter md:text-6xl">Nuestros <span className="text-yellow-400">Programas</span></h2>
                 <p className="mt-4 max-w-3xl text-zinc-300">
-                  Catalogo dinamico conectado con la base de datos. Aqui se reflejan en tiempo real los cursos activos de arte y musica,
-                  con su profesor asignado y descripcion para orientar mejor la decision del estudiante.
+                  {!isAuthenticated
+                    ? 'Vista previa del catalogo con 3 cursos destacados. Inicia sesion para desbloquear el carrusel completo con todos los cursos de la academia.'
+                    : 'Catalogo completo en carrusel, actualizado en tiempo real con la base de datos para mostrar todos los cursos de arte y musica.'}
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3 text-xs font-bold uppercase tracking-widest">
                   <span className="rounded-full border border-yellow-400/50 bg-yellow-400/10 px-3 py-1 text-yellow-300">Arte: {courseStats.artCount}</span>
@@ -244,44 +272,67 @@ export default function LandingPage() {
             {coursesLoading ? (
               <p className="rounded-xl border border-white/15 bg-black/30 p-4 text-zinc-200">Cargando cursos...</p>
             ) : coursesError ? (
-              <p className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">
-                {coursesError}. {user ? 'Recarga la pagina para reintentar.' : 'Inicia sesion para cargar el catalogo dinamico.'}
-              </p>
-            ) : featuredCourses.length === 0 ? (
+              <p className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-200">{coursesError}</p>
+            ) : courses.length === 0 ? (
               <p className="rounded-xl border border-white/15 bg-black/30 p-4 text-zinc-200">No hay cursos disponibles por ahora.</p>
             ) : (
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {featuredCourses.map((course) => (
-                  <article
-                    key={course.id}
-                    className="overflow-hidden rounded-2xl border border-white/15 bg-black/45 shadow-xl backdrop-blur transition-all duration-300 hover:-translate-y-2 hover:border-yellow-400/60"
+              <div className="space-y-5">
+                {isAuthenticated && courses.length > cardsPerView && (
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => moveCarousel('prev')}
+                      className="rounded-full border border-white/30 px-4 py-2 text-xs font-black uppercase tracking-wider transition-all duration-300 hover:bg-white hover:text-black"
+                    >
+                      Anterior
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveCarousel('next')}
+                      className="rounded-full border border-white/30 px-4 py-2 text-xs font-black uppercase tracking-wider transition-all duration-300 hover:bg-white hover:text-black"
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                )}
+
+                <div className="overflow-hidden">
+                  <div
+                    className="flex transition-transform duration-500"
+                    style={{ transform: `translateX(-${(carouselIndex * 100) / cardsPerView}%)` }}
                   >
-                    <div
-                      className="h-44 w-full bg-cover bg-center"
-                      style={{
-                        backgroundImage: `linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,.1)), url('${course.image_url || getFallbackImage(course.category)}')`,
-                      }}
-                    />
-                    <div className="p-5">
-                      <div className="mb-3 flex items-center justify-between gap-2">
-                        <span className={`text-xs font-black uppercase tracking-widest ${course.category === 'MUSICA' ? 'text-blue-400' : 'text-yellow-400'}`}>
-                          {course.category === 'MUSICA' ? 'Audio Lab' : 'Visual Art'}
-                        </span>
-                        <span className="rounded-full border border-white/20 px-2 py-0.5 text-[10px] font-bold uppercase text-zinc-300">
-                          {course.total_classes > 0 ? `${course.total_classes} clases` : 'Plan inicial'}
-                        </span>
-                      </div>
+                    {courses.map((course) => (
+                      <div key={course.id} style={{ width: `${100 / cardsPerView}%` }} className="shrink-0 p-2">
+                        <article className="overflow-hidden rounded-2xl border border-white/15 bg-black/45 shadow-xl backdrop-blur transition-all duration-300 hover:-translate-y-2 hover:border-yellow-400/60">
+                          <div
+                            className="h-44 w-full bg-cover bg-center"
+                            style={{
+                              backgroundImage: `linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,.1)), url('${course.image_url || getFallbackImage(course.category)}')`,
+                            }}
+                          />
+                          <div className="p-5">
+                            <div className="mb-3 flex items-center justify-between gap-2">
+                              <span className={`text-xs font-black uppercase tracking-widest ${course.category === 'MUSICA' ? 'text-blue-400' : 'text-yellow-400'}`}>
+                                {course.category === 'MUSICA' ? 'Audio Lab' : 'Visual Art'}
+                              </span>
+                              <span className="rounded-full border border-white/20 px-2 py-0.5 text-[10px] font-bold uppercase text-zinc-300">
+                                {course.total_classes > 0 ? `${course.total_classes} clases` : 'Plan inicial'}
+                              </span>
+                            </div>
 
-                      <h3 className="text-2xl font-black italic uppercase leading-tight">{course.title}</h3>
-                      <p className="mt-3 text-sm text-zinc-300">{course.description}</p>
+                            <h3 className="text-2xl font-black italic uppercase leading-tight">{course.title}</h3>
+                            <p className="mt-3 min-h-16 text-sm text-zinc-300">{course.description}</p>
 
-                      <div className="mt-5 flex items-center justify-between">
-                        <p className="text-xs uppercase tracking-wider text-zinc-400">Docente: {course.professor_name || 'Asignado'}</p>
-                        <span className="flex h-9 w-9 items-center justify-center border border-white/20 text-lg">?</span>
+                            <div className="mt-5 flex items-center justify-between">
+                              <p className="text-xs uppercase tracking-wider text-zinc-400">Docente: {course.professor_name || 'Asignado'}</p>
+                              <span className="flex h-9 w-9 items-center justify-center border border-white/20 text-lg">?</span>
+                            </div>
+                          </div>
+                        </article>
                       </div>
-                    </div>
-                  </article>
-                ))}
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -310,7 +361,7 @@ export default function LandingPage() {
               <div className="mt-4 space-y-2 text-sm text-zinc-400">
                 <p>Arte ({courseStats.artCount})</p>
                 <p>Musica ({courseStats.musicCount})</p>
-                <p>Cursos activos ({courseStats.total})</p>
+                <p>Cursos visibles ({courseStats.total})</p>
               </div>
             </div>
 
