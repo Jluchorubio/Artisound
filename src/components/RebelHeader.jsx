@@ -9,7 +9,7 @@ const navByRole = {
   ],
   PROFESOR: [
     { to: '/inicio', label: 'Dashboard' },
-    { to: '/profesor', label: 'Clases' },
+    { to: '/profesor', label: 'Cursos' },
     { to: '/dibujos', label: 'Lienzo' },
     { to: '/dashboard', label: 'Seguridad' },
   ],

@@ -8,7 +8,7 @@ const router = Router();
 
 const gradeSchema = z.object({
   studentId: z.number().int().positive(),
-  grade: z.number().min(0).max(100),
+  grade: z.number().min(1).max(100),
   feedback: z.string().max(2000).optional(),
 });
 

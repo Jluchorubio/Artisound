@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiRequest } from '../api/client';
 import EmailCodeModal from '../components/EmailCodeModal';
@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const { loginWithToken } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -110,7 +111,7 @@ export default function RegisterPage() {
           <p className="text-3xl font-black italic tracking-tight">
             AXM<span className="text-blue-400">.</span>
           </p>
-          <h1 className="mt-5 text-5xl font-black italic uppercase leading-none">
+          <h1 className="mt-5 text-3xl md:text-5xl font-black italic uppercase leading-none">
             Join The
             <br />
             <span className="text-blue-400">Collective</span>
@@ -146,15 +147,28 @@ export default function RegisterPage() {
 
             <div>
               <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.28em] text-zinc-400">Password</label>
-              <input
-                type="password"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder="Minimo 8 caracteres"
-                required
-                minLength={8}
-                className="w-full border-0 border-b-2 border-white/10 bg-white/5 px-4 py-3 font-semibold text-white outline-none transition focus:border-blue-400 focus:bg-white/10"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  placeholder="Minimo 8 caracteres"
+                  required
+                  minLength={8}
+                  className="w-full border-0 border-b-2 border-white/10 bg-white/5 px-4 py-3 pr-14 font-semibold text-white outline-none transition focus:border-blue-400 focus:bg-white/10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-zinc-300 transition hover:text-blue-300"
+                  aria-label={showPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+                >
+                  <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="2" aria-hidden="true">
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             {error && <p className="text-sm text-rose-300">{error}</p>}
@@ -192,3 +206,4 @@ export default function RegisterPage() {
     </>
   );
 }
+

@@ -192,8 +192,20 @@ export default function LandingPage() {
         <section className="relative overflow-hidden bg-black px-4 py-20 md:px-10 md:py-24">
           <div className="mx-auto grid w-full max-w-7xl items-center gap-10 md:grid-cols-[1.05fr_0.95fr]">
             <div className="relative h-[320px] md:h-[520px]">
-              <div className="absolute left-6 top-6 h-[88%] w-[88%] rotate-[-3deg] border-[10px] border-[#ffb000]" />
-              <div className="absolute left-0 top-0 h-[88%] w-[88%] rotate-[-3deg] border-[10px] border-[#2f3138]" />
+              <div
+                className="absolute left-6 top-6 h-[88%] w-[88%] rotate-[-3deg] border-[10px] border-[#ffb000] bg-cover bg-center"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(to top, rgba(0,0,0,.35), rgba(0,0,0,.1)), url('https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&q=80&w=1200')",
+                }}
+              />
+              <div
+                className="absolute left-0 top-0 h-[88%] w-[88%] rotate-[-3deg] border-[10px] border-[#2f3138] bg-cover bg-center"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(to top, rgba(0,0,0,.5), rgba(0,0,0,.18)), url('https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=1200')",
+                }}
+              />
             </div>
 
             <div className="relative">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useCallback, useEffect, useState } from 'react';
 import { apiRequest } from '../api/client';
 import RebelHeader from '../components/RebelHeader';
 import { useAuth } from '../context/AuthContext';
@@ -45,27 +45,36 @@ export default function IndexPage() {
 
   const isStudent = user.role === 'USUARIO';
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      setError('');
-      try {
-        const coursesRes = await apiRequest('/courses');
-        setCourses(coursesRes.courses || []);
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const coursesRes = await apiRequest('/courses');
+      setCourses(coursesRes.courses || []);
 
-        if (isStudent) {
-          const enrollmentsRes = await apiRequest('/me/enrollments');
-          setEnrolledCourseIds(new Set((enrollmentsRes.enrollments || []).map((item) => item.course_id)));
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      if (isStudent) {
+        const enrollmentsRes = await apiRequest('/me/enrollments');
+        setEnrolledCourseIds(new Set((enrollmentsRes.enrollments || []).map((item) => item.course_id)));
       }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    loadData();
   }, [isStudent]);
+
+  useEffect(() => {
+    loadData();
+
+    const intervalId = setInterval(loadData, 20000);
+    const onFocus = () => loadData();
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [loadData]);
 
   const onEnroll = async (courseId) => {
     if (enrolledCourseIds.has(courseId)) return;
@@ -82,6 +91,7 @@ export default function IndexPage() {
         next.add(courseId);
         return next;
       });
+      await loadData();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -96,7 +106,7 @@ export default function IndexPage() {
       <section className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 md:px-6">
         <section className="border border-white/10 bg-[#111] p-6 shadow-[14px_14px_0px_#facc15]">
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-zinc-500">Panel principal</p>
-          <h1 className="mt-3 text-5xl font-black italic uppercase leading-none">
+          <h1 className="mt-3 text-3xl md:text-5xl font-black italic uppercase leading-none">
             Estado de
             <br />
             <span className="text-yellow-400">Operaciones</span>
@@ -108,7 +118,7 @@ export default function IndexPage() {
         {error && <p className="border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
 
         <section className="border border-white/10 bg-[#121212] p-6">
-          <h2 className="mb-5 text-4xl font-black italic uppercase leading-none">
+          <h2 className="mb-5 text-3xl md:text-4xl font-black italic uppercase leading-none">
             Modulos
             <br />
             <span className="text-blue-500">Disponibles</span>
@@ -137,3 +147,4 @@ export default function IndexPage() {
     </>
   );
 }
+

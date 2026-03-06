@@ -5,6 +5,8 @@ import { authenticate } from '../middlewares/auth.middleware.js';
 import { authorizeRoles } from '../middlewares/role.middleware.js';
 
 const router = Router();
+const MIN_CLASSES_TO_ACTIVATE = 1;
+const RECOMMENDED_CLASSES = 5;
 
 const courseSchema = z.object({
   title: z.string().min(3).max(180),
@@ -129,7 +131,7 @@ router.post('/', authenticate, authorizeRoles('ADMIN'), async (req, res) => {
 
     const { title, description, category = 'ARTE', imageUrl = null, professorId } = parsed.data;
     const requestedStatus = mapStatusFromPayload(parsed.data) || 'INACTIVE';
-    const status = requestedStatus === 'ACTIVE' ? 'INACTIVE' : requestedStatus;
+    const status = requestedStatus;
 
     const professorRows = await query(
       `SELECT u.id
@@ -151,10 +153,7 @@ router.post('/', authenticate, authorizeRoles('ADMIN'), async (req, res) => {
     );
 
     return res.status(201).json({
-      message:
-        requestedStatus === 'ACTIVE'
-          ? 'Curso creado en estado INACTIVE. Agrega minimo 10 clases para activarlo.'
-          : 'Curso creado',
+      message: status === 'ACTIVE' ? 'Curso creado y publicado' : 'Curso creado en borrador (INACTIVE)',
       courseId: result.insertId,
     });
   } catch (error) {
@@ -197,9 +196,9 @@ router.patch('/:id', authenticate, authorizeRoles('ADMIN'), async (req, res) => 
     if (statusUpdate === 'ACTIVE') {
       const classCountRows = await query('SELECT COUNT(*) AS total FROM classes WHERE course_id = ?', [courseId]);
       const totalClasses = classCountRows[0]?.total || 0;
-      if (totalClasses < 10) {
+      if (totalClasses < MIN_CLASSES_TO_ACTIVATE) {
         return res.status(400).json({
-          message: 'No se puede activar el curso: debe tener minimo 10 clases.',
+          message: `No se puede activar el curso: debe tener al menos ${MIN_CLASSES_TO_ACTIVATE} clase (recomendado ${RECOMMENDED_CLASSES}).`,
         });
       }
     }

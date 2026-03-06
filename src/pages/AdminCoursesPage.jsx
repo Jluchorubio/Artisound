@@ -1,7 +1,16 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { apiRequest } from '../api/client';
 import RebelHeader from '../components/RebelHeader';
 import { useAuth } from '../context/AuthContext';
+
+const initialForm = {
+  title: '',
+  description: '',
+  category: 'ARTE',
+  imageUrl: '',
+  professorId: '',
+  published: true,
+};
 
 export default function AdminCoursesPage() {
   const { user, logout } = useAuth();
@@ -9,15 +18,8 @@ export default function AdminCoursesPage() {
   const [courses, setCourses] = useState([]);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    category: 'ARTE',
-    imageUrl: '',
-    professorId: '',
-    published: true,
-  });
+  const [form, setForm] = useState(initialForm);
+  const [editingCourseId, setEditingCourseId] = useState(null);
 
   const loadData = async () => {
     setError('');
@@ -45,30 +47,66 @@ export default function AdminCoursesPage() {
 
   const professorOptions = users.filter((item) => item.role === 'PROFESOR' && item.active);
 
-  const createCourse = async (event) => {
+  const resetForm = () => {
+    setForm(initialForm);
+    setEditingCourseId(null);
+  };
+
+  const submitCourse = async (event) => {
     event.preventDefault();
     setError('');
     setMessage('');
 
     try {
-      await apiRequest('/courses', {
-        method: 'POST',
-        body: JSON.stringify({
-          title: form.title,
-          description: form.description,
-          category: form.category,
-          imageUrl: form.imageUrl || undefined,
-          professorId: Number(form.professorId),
-          published: Boolean(form.published),
-        }),
-      });
+      if (editingCourseId) {
+        const response = await apiRequest(`/courses/${editingCourseId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            title: form.title,
+            description: form.description,
+            category: form.category,
+            imageUrl: form.imageUrl || undefined,
+            professorId: Number(form.professorId),
+            published: Boolean(form.published),
+          }),
+        });
 
-      setMessage('Curso creado');
-      setForm({ title: '', description: '', category: 'ARTE', imageUrl: '', professorId: '', published: true });
+        setMessage(response.message || 'Curso actualizado');
+      } else {
+        const response = await apiRequest('/courses', {
+          method: 'POST',
+          body: JSON.stringify({
+            title: form.title,
+            description: form.description,
+            category: form.category,
+            imageUrl: form.imageUrl || undefined,
+            professorId: Number(form.professorId),
+            published: Boolean(form.published),
+          }),
+        });
+
+        setMessage(response.message || 'Curso creado');
+      }
+
+      resetForm();
       await loadData();
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const startEditCourse = (course) => {
+    setError('');
+    setMessage('');
+    setEditingCourseId(course.id);
+    setForm({
+      title: course.title || '',
+      description: course.description || '',
+      category: course.category || 'ARTE',
+      imageUrl: course.image_url || '',
+      professorId: course.professor_id ? String(course.professor_id) : '',
+      published: course.status === 'ACTIVE',
+    });
   };
 
   const deleteCourse = async (courseId) => {
@@ -77,6 +115,9 @@ export default function AdminCoursesPage() {
     try {
       await apiRequest(`/courses/${courseId}`, { method: 'DELETE' });
       setMessage('Curso eliminado');
+      if (editingCourseId === courseId) {
+        resetForm();
+      }
       await loadData();
     } catch (err) {
       setError(err.message);
@@ -90,20 +131,20 @@ export default function AdminCoursesPage() {
       <section className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 md:px-6">
         <section className="border border-white/10 bg-[#111] p-6 shadow-[14px_14px_0px_#3b82f6]">
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-zinc-500">Administracion</p>
-          <h1 className="mt-3 text-5xl font-black italic uppercase leading-none">
+          <h1 className="mt-3 text-3xl md:text-5xl font-black italic uppercase leading-none">
             Gestion de
             <br />
             <span className="text-blue-500">Cursos</span>
           </h1>
-          <p className="mt-4 text-zinc-300">Crea cursos, asigna profesores y organiza la oferta academica.</p>
+          <p className="mt-4 text-zinc-300">Administra cursos y define su visibilidad: Publico (usuarios/profesores) o Privado (solo profesores/admin).</p>
         </section>
 
         {error && <p className="border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>}
         {message && <p className="border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">{message}</p>}
 
         <section className="border border-white/10 bg-[#121212] p-6">
-          <h2 className="mb-4 text-3xl font-black uppercase italic">Crear curso</h2>
-          <form onSubmit={createCourse} className="grid gap-3 md:grid-cols-2">
+          <h2 className="mb-4 text-3xl font-black uppercase italic">{editingCourseId ? 'Editar curso' : 'Crear curso'}</h2>
+          <form onSubmit={submitCourse} className="grid gap-3 md:grid-cols-2">
             <input
               placeholder="Titulo"
               value={form.title}
@@ -145,17 +186,28 @@ export default function AdminCoursesPage() {
                 </option>
               ))}
             </select>
-            <label className="flex items-center gap-2 border border-white/20 bg-black/30 px-3 py-2 text-sm text-zinc-200">
-              <input
-                type="checkbox"
-                checked={form.published}
-                onChange={(e) => setForm({ ...form, published: e.target.checked })}
-              />
-              Publicado
-            </label>
+            <select
+              value={form.published ? 'PUBLIC' : 'PRIVATE'}
+              onChange={(e) => setForm({ ...form, published: e.target.value === 'PUBLIC' })}
+              className="border border-white/20 bg-black/30 px-3 py-2 text-white outline-none"
+            >
+              <option value="PUBLIC" className="text-slate-900">Publico (usuarios y profesores)</option>
+              <option value="PRIVATE" className="text-slate-900">Privado (solo profesores/admin)</option>
+            </select>
+
             <button className="bg-white px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-black transition hover:-skew-x-6 hover:bg-blue-400 hover:text-white md:col-span-2">
-              Crear
+              {editingCourseId ? 'Guardar cambios' : 'Crear'}
             </button>
+
+            {editingCourseId && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="border border-white/20 px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-zinc-100 transition hover:border-white/40 md:col-span-2"
+              >
+                Cancelar edicion
+              </button>
+            )}
           </form>
         </section>
 
@@ -166,17 +218,31 @@ export default function AdminCoursesPage() {
           ) : (
             <div className="space-y-2">
               {courses.map((course) => (
-                <article key={course.id} className="flex flex-col gap-3 border border-white/10 bg-[#1a1a1a] p-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="font-semibold text-white">{course.title}</p>
-                    <p className="text-xs text-zinc-300">Categoria: {course.category} � Profesor: {course.professor_name}</p>
+                <article key={course.id} className="flex flex-col gap-3 border border-white/10 bg-[#1a1a1a] p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-white">{course.title}</p>
+                      <p className="text-xs text-zinc-300">Categoria: {course.category} · Profesor: {course.professor_name}</p>
+                    </div>
+                    <span className={`px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${course.status === 'ACTIVE' ? 'bg-emerald-500/20 text-emerald-200' : 'bg-zinc-700 text-zinc-200'}`}>
+                      {course.status === 'ACTIVE' ? 'Publico' : 'Privado'}
+                    </span>
                   </div>
-                  <button
-                    onClick={() => deleteCourse(course.id)}
-                    className="bg-rose-600 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white transition hover:brightness-110"
-                  >
-                    Eliminar
-                  </button>
+
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => startEditCourse(course)}
+                      className="border border-white/20 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white transition hover:border-blue-400 hover:text-blue-300"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => deleteCourse(course.id)}
+                      className="bg-rose-600 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-white transition hover:brightness-110"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </article>
               ))}
             </div>
@@ -186,3 +252,4 @@ export default function AdminCoursesPage() {
     </>
   );
 }
+

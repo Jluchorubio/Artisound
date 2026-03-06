@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { apiRequest } from '../api/client';
 import RebelHeader from '../components/RebelHeader';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +24,10 @@ function hexToRgba(hex, alpha) {
   const b = bigint & 255;
 
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function randomOffset(radius) {
+  return (Math.random() * 2 - 1) * radius;
 }
 
 export default function DrawingPage() {
@@ -54,6 +58,22 @@ export default function DrawingPage() {
     };
   };
 
+  const sprayAtPoint = (ctx, point) => {
+    const density = Math.max(8, Math.round(lineWidth * 2.2));
+    const radius = Math.max(4, lineWidth * 1.6);
+    const dotSize = Math.max(1, lineWidth * 0.18);
+
+    for (let i = 0; i < density; i += 1) {
+      const offsetX = randomOffset(radius);
+      const offsetY = randomOffset(radius);
+      if (offsetX * offsetX + offsetY * offsetY > radius * radius) continue;
+
+      ctx.beginPath();
+      ctx.arc(point.x + offsetX, point.y + offsetY, dotSize, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  };
+
   const applyBrushConfig = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -65,9 +85,11 @@ export default function DrawingPage() {
     if (tool === 'eraser') {
       ctx.globalCompositeOperation = 'destination-out';
       ctx.strokeStyle = 'rgba(0,0,0,1)';
+      ctx.fillStyle = 'rgba(0,0,0,1)';
     } else {
       ctx.globalCompositeOperation = 'source-over';
       ctx.strokeStyle = hexToRgba(color, opacity);
+      ctx.fillStyle = hexToRgba(color, opacity);
     }
 
     return ctx;
@@ -136,6 +158,11 @@ export default function DrawingPage() {
     const point = getCanvasPoint(event);
     const ctx = applyBrushConfig();
 
+    if (tool === 'spray') {
+      sprayAtPoint(ctx, point);
+      return;
+    }
+
     ctx.beginPath();
     ctx.moveTo(point.x, point.y);
   };
@@ -146,6 +173,11 @@ export default function DrawingPage() {
     event.preventDefault();
     const point = getCanvasPoint(event);
     const ctx = applyBrushConfig();
+
+    if (tool === 'spray') {
+      sprayAtPoint(ctx, point);
+      return;
+    }
 
     ctx.lineTo(point.x, point.y);
     ctx.stroke();
@@ -277,7 +309,7 @@ export default function DrawingPage() {
       <section className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 md:px-6">
         <section className="border border-white/10 bg-[#111] p-6 shadow-[14px_14px_0px_#f59e0b]">
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-zinc-500">Laboratorio visual</p>
-          <h1 className="mt-3 text-5xl font-black italic uppercase leading-none">
+          <h1 className="mt-3 text-3xl md:text-5xl font-black italic uppercase leading-none">
             Libertad
             <br />
             <span className="text-rose-500">Creativa</span>
@@ -301,8 +333,14 @@ export default function DrawingPage() {
                     Pincel
                   </button>
                   <button
+                    onClick={() => setTool('spray')}
+                    className={`px-3 py-2 text-xs font-black uppercase tracking-[0.12em] ${tool === 'spray' ? 'bg-yellow-400 text-black' : 'border border-white/20 text-zinc-100'}`}
+                  >
+                    Spray
+                  </button>
+                  <button
                     onClick={() => setTool('eraser')}
-                    className={`px-3 py-2 text-xs font-black uppercase tracking-[0.12em] ${tool === 'eraser' ? 'bg-yellow-400 text-black' : 'border border-white/20 text-zinc-100'}`}
+                    className={`col-span-2 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] ${tool === 'eraser' ? 'bg-yellow-400 text-black' : 'border border-white/20 text-zinc-100'}`}
                   >
                     Borrador
                   </button>
@@ -319,7 +357,7 @@ export default function DrawingPage() {
                     Rehacer
                   </button>
                   <button onClick={clearCanvas} className="col-span-2 bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-black">
-                    Limpiar lienzo
+                    Limpiar muro
                   </button>
                 </div>
               </div>
@@ -377,7 +415,7 @@ export default function DrawingPage() {
                   className="border border-white/20 bg-black/30 px-3 py-2 text-white"
                 />
                 <button onClick={saveDrawing} className="bg-white px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-black transition hover:-skew-x-6 hover:bg-rose-400 hover:text-white md:col-span-2">
-                  {editingDrawingId ? 'Actualizar dibujo' : 'Guardar dibujo'}
+                  {editingDrawingId ? 'Actualizar tag' : 'Guardar tag'}
                 </button>
                 {editingDrawingId && (
                   <button
@@ -424,3 +462,4 @@ export default function DrawingPage() {
     </>
   );
 }
+

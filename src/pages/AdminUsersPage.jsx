@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { apiRequest } from '../api/client';
 import RebelHeader from '../components/RebelHeader';
 import { useAuth } from '../context/AuthContext';
@@ -47,7 +47,7 @@ export default function AdminUsersPage() {
       <section className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 md:px-6">
         <section className="border border-white/10 bg-[#111] p-6 shadow-[14px_14px_0px_#a855f7]">
           <p className="text-[11px] font-black uppercase tracking-[0.28em] text-zinc-500">Administracion</p>
-          <h1 className="mt-3 text-5xl font-black italic uppercase leading-none">
+          <h1 className="mt-3 text-3xl md:text-5xl font-black italic uppercase leading-none">
             Gestion de
             <br />
             <span className="text-violet-400">Usuarios</span>
@@ -102,3 +102,4 @@ export default function AdminUsersPage() {
     </>
   );
 }
+

@@ -13,7 +13,7 @@
   - Regla: inicia en `INACTIVE`.
 - `PATCH /api/courses/:id` (`ADMIN`)
   - Permite editar `title`, `description`, `category`, `professorId`, `status/published`.
-  - Regla: para pasar a `ACTIVE`, el curso debe tener minimo 10 clases.
+  - Regla: para pasar a `ACTIVE`, el curso debe tener al menos 1 clase (recomendado: 5).
 - `DELETE /api/courses/:id` (`ADMIN`)
 
 ### Inscripciones
