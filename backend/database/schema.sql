@@ -140,3 +140,40 @@ CREATE TABLE IF NOT EXISTS email_verification_codes (
   CONSTRAINT fk_email_codes_user FOREIGN KEY (user_id) REFERENCES users(id)
     ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- Seed data (roles, users, courses, classes)
+-- This keeps the project runnable right after executing this schema.sql.
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+INSERT IGNORE INTO roles (id, name) VALUES
+  (1, 'ADMIN'),
+  (2, 'PROFESOR'),
+  (3, 'USUARIO');
+
+INSERT IGNORE INTO users (id, name, email, password_hash, role_id, twofa_secret, twofa_temp_secret, twofa_enabled, active) VALUES
+  (1, 'Administrador', 'admin@artisound.com', '$2b$12$V.YUtTCdm.bY8RwUHx/3gOUZxHE7M9NQGkzstmW5NYV3hetNAoqMy', 1, NULL, NULL, FALSE, TRUE),
+  (2, 'Profesor', 'profesor@artisound.com', '$2b$12$TyIgwhSvu3sY6zqBNwAcfORhBGjJpYpXdzmOOWDkmKBoEEYGsMJW6', 2, NULL, NULL, FALSE, TRUE),
+  (3, 'Usuario Demo', 'joselu.rubio2008@gmail.com', '$2b$12$zNcfZzX7ltNaJ9TQAK6Xh.uZGPVM1AQfF3m57YAqEI8ckMjofqNmK', 3, NULL, NULL, FALSE, TRUE);
+
+INSERT IGNORE INTO courses (id, title, description, category, image_url, professor_id, total_classes, status, published) VALUES
+  (1, 'Sombreado y tecnicas de sombras', 'Aprende a construir volumen, contraste y profundidad con tecnicas de sombreado tradicionales y digitales.', 'ARTE', 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&q=80', 2, 0, 'ACTIVE', TRUE),
+  (2, 'Iluminacion y luces en dibujo', 'Domina fuentes de luz, reflejos y atmosfera para escenas realistas e ilustraciones expresivas.', 'ARTE', 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=1200&q=80', 2, 0, 'ACTIVE', TRUE),
+  (3, 'Teoria del color y paletas de colores', 'Entiende armonias, contraste cromatico y seleccion de paletas para piezas visuales profesionales.', 'ARTE', 'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80', 2, 0, 'ACTIVE', TRUE),
+  (4, 'Como dibujar personas usando formas geometricas', 'Construye figuras humanas desde formas base para mejorar proporcion, pose y estructura.', 'ARTE', 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=1200&q=80', 2, 0, 'ACTIVE', TRUE),
+  (5, 'Perspectiva en ilustracion', 'Aplica perspectiva de 1, 2 y 3 puntos para escenarios y composiciones con profundidad coherente.', 'ARTE', 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&w=1200&q=80', 2, 0, 'ACTIVE', TRUE),
+  (6, 'Dibujo anatomico basico', 'Estudia proporciones, volumen y articulaciones para representar anatomia humana con precision.', 'ARTE', 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=1200&q=80', 2, 0, 'ACTIVE', TRUE),
+  (7, 'Introduccion a la guitarra', 'Fundamentos tecnicos de digitacion, acordes basicos y coordinacion de manos para principiantes.', 'MUSICA', 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?auto=format&fit=crop&w=1200&q=80', 2, 0, 'ACTIVE', TRUE),
+  (8, 'Teoria musical basica', 'Lectura ritmica, intervalos y construccion de acordes para comprender el lenguaje musical.', 'MUSICA', 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=1200&q=80', 2, 0, 'ACTIVE', TRUE),
+  (9, 'Escalas musicales', 'Practica escalas mayores, menores y modos para mejorar tecnica e improvisacion.', 'MUSICA', 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1200&q=80', 2, 0, 'ACTIVE', TRUE),
+  (10, 'Ritmo y tempo', 'Desarrolla precision ritmica con subdivisiones, metrico interno y ejercicios con metronomo.', 'MUSICA', 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?auto=format&fit=crop&w=1200&q=80', 2, 0, 'ACTIVE', TRUE),
+  (11, 'Composicion musical', 'Crea piezas originales aplicando forma, melodia, armonia y desarrollo tematico.', 'MUSICA', 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=80', 2, 0, 'ACTIVE', TRUE),
+  (12, 'Improvisacion en guitarra', 'Entrena fraseo, articulacion y recursos armonicos para improvisar con identidad.', 'MUSICA', 'https://images.unsplash.com/photo-1525201548942-d8732f6617a0?auto=format&fit=crop&w=1200&q=80', 2, 0, 'ACTIVE', TRUE),
+  (16, 'animacion 3d', 'gvh bjkjlnb gcvh nm', 'ARTE', NULL, 2, 1, 'ACTIVE', TRUE),
+  (17, 'primeros pasos de teoria', 'teoria musical', 'MUSICA', NULL, 2, 1, 'ACTIVE', TRUE);
+
+INSERT IGNORE INTO classes (id, course_id, professor_id, title, description, scheduled_at, class_order, duration_minutes) VALUES
+  (2, 16, 2, 'mamejo blender', 'trdtfyhijklkmbncvxx<zxcvhbjk', '2026-03-08 00:49:00', 1, 120),
+  (3, 17, 2, 'bases de teoria 1', 'zdxfcgvhjjklnk,mnb', '2026-03-21 14:50:00', 1, 120);
+
+SET FOREIGN_KEY_CHECKS = 1;

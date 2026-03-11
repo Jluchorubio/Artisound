@@ -13,6 +13,7 @@ for (const envVar of requiredVars) {
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   databaseUrl: process.env.DATABASE_URL,
+  dbConnectTimeoutMs: Number(process.env.DB_CONNECT_TIMEOUT_MS || 10_000),
   port: Number(process.env.PORT || 4000),
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   frontendUrls: (process.env.FRONTEND_URLS || `${process.env.FRONTEND_URL || 'http://localhost:5173'},http://127.0.0.1:5173`)

@@ -9,6 +9,7 @@ const pool = mysql.createPool({
   user: decodeURIComponent(parsed.username),
   password: decodeURIComponent(parsed.password),
   database: parsed.pathname.replace('/', ''),
+  connectTimeout: env.dbConnectTimeoutMs,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
